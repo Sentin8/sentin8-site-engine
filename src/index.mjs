@@ -98,7 +98,7 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
             items: ALL_SITES.map((s) => ({ label: s.name, href: `https://${s.key}.dev/` })),
           },
         ],
-        copyright: `Copyright Contributors to the ${site.name || site.vertical} Project. Built with Docusaurus.`,
+        copyright: `Copyright Logically Magic Inc.`,
       },
       prism: {
         theme: undefined,
