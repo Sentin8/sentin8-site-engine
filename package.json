@@ -1,0 +1,40 @@
+{
+  "name": "@sentin8/site-engine",
+  "version": "0.1.0",
+  "description": "Shared Docusaurus engine for the Sentin8 public websites (sentin8.dev + {vertical}.dev) — theme, MDX components, config/sidebar factories, docs harvester, site scaffolder.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./components": "./src/components.mjs",
+    "./theme": "./src/theme.css",
+    "./scripts/harvest.mjs": "./scripts/harvest.mjs",
+    "./scripts/new-site.mjs": "./scripts/new-site.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "README.md",
+    "NOTICE",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test 'test/*.test.mjs'"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@docusaurus/types": "^3.10.0",
+    "@docusaurus/theme-mermaid": "^3.10.0",
+    "@mermaid-js/layout-elk": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@docusaurus/core": "^3.10.0",
+    "@docusaurus/preset-classic": "^3.10.0",
+    "@docusaurus/theme-mermaid": "^3.10.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  }
+}
