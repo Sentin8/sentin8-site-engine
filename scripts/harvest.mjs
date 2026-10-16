@@ -116,28 +116,40 @@ for (const unit of units) {
     ['CHANGELOG.md', 'changelog', 'Changelog', true],
   ];
 
-// Typography normalization (site typography rule): the sites render with
-// plain hyphens; source-repo prose may use long dashes and is normalized at
-// render time so the sites stay consistent without touching the sources.
-const normalizeTypography = (s) => s.replaceAll(' \u2014 ', ' - ').replaceAll('\u2014', '-');
+  // Typography normalization (site typography rule): the sites render with
+  // plain hyphens; source-repo prose may use long dashes and is normalized at
+  // render time so the sites stay consistent without touching the sources.
+  const normalizeTypography = (s) => s.replaceAll(' \u2014 ', ' - ').replaceAll('\u2014', '-');
 
-const writeFileWithFrontmatter = (dir, file, outName, label, content) => {
-  const fm = [
-    '---',
-    `title: ${JSON.stringify(`${unit.name || slug} - ${label}`)}`,
-    `sidebar_label: ${JSON.stringify(label)}`,
-    // Docusaurus 3.10: per-file format lives under the mdx frontmatter
-    // key (mdx-loader reads frontMatter.mdx.format) - keeps raw HTML /
-    // angle brackets in maintainer docs from being parsed as JSX.
-    'mdx:',
-    '  format: md',
-    `custom_edit_url: https://github.com/${org}/${repo}/edit/main/${file}`,
-    '---',
-    '',
-  ].join('\n');
-  writeFileSync(path.join(dir, `${outName}.md`), fm + normalizeTypography(content) + '\n');
+  const writeFileWithFrontmatter = (dir, file, outName, label, content) => {
+    const fm = [
+      '---',
+      `title: ${JSON.stringify(`${unit.name || slug} - ${label}`)}`,
+      `sidebar_label: ${JSON.stringify(label)}`,
+      // Docusaurus 3.10: per-file format lives under the mdx frontmatter
+      // key (mdx-loader reads frontMatter.mdx.format) - keeps raw HTML /
+      // angle brackets in maintainer docs from being parsed as JSX.
+      'mdx:',
+      '  format: md',
+      `custom_edit_url: https://github.com/${org}/${repo}/edit/main/${file}`,
+      '---',
+      '',
+    ].join('\n');
+    writeFileSync(path.join(dir, `${outName}.md`), fm + normalizeTypography(content) + '\n');
+  };
+
+  // Resolve all sources up front so indexes list only what exists.
+  const resolved = [];
+  for (const [file, outName, label, embed] of sources) {
+    const content = await resolveFile(repo, file, org);
+    if (content === null) {
+      console.warn(`harvest: ${repo}: ${file} not found (skipped)`);
+      continue;
+    }
+    resolved.push({ file, outName, label });
+    // Every source lands in the consolidated reference tree...
     writeFileWithFrontmatter(refDir, file, outName, label, content);
-    // …and the dossier sources also embed inside the product/app tree.
+    // ...and the dossier sources also embed inside the product/app tree.
     if (embed) writeFileWithFrontmatter(unitDir, file, outName, label, content);
     harvested++;
   }
