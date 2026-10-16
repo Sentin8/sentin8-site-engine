@@ -44,31 +44,95 @@ export function StartHere({ items }) {
 }
 
 /** Hero banner for landing pages: title, tagline, optional CTA links. */
-export function Hero({ title, tagline, actions = [], accent }) {
+export function Hero({ title, tagline, eyebrow, actions = [], accent, stats = [], code }) {
+  const actionEls = actions.length
+    ? h(
+        'div',
+        { className: 's8-hero-actions' },
+        actions.map((a, i) =>
+          h(
+            'a',
+            {
+              key: i,
+              href: a.href,
+              className: cx('s8-btn', a.primary && 's8-btn-primary'),
+              style: a.primary && accent ? { background: accent, borderColor: accent } : undefined,
+              ...(a.href?.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+            },
+            a.label,
+          ),
+        ),
+      )
+    : null;
+
+  const statsEl = stats.length
+    ? h(
+        'div',
+        { className: 's8-stats' },
+        stats.map((s, i) =>
+          h(
+            'div',
+            { key: i, className: 's8-stat' },
+            h('span', { className: 's8-stat-value' }, s.value),
+            h('span', { className: 's8-stat-label' }, s.label),
+          ),
+        ),
+      )
+    : null;
+
+  const visual = code
+    ? h(CodeWindow, { title: code.title, lang: code.lang, lines: code.lines })
+    : null;
+
   return h(
     'header',
     { className: 's8-hero' },
-    h('h1', null, title),
-    tagline ? h('p', { className: 's8-hero-tagline' }, tagline) : null,
-    actions.length
-      ? h(
-          'div',
-          { className: 's8-hero-actions' },
-          actions.map((a, i) =>
-            h(
-              'a',
-              {
-                key: i,
-                href: a.href,
-                className: cx('s8-btn', a.primary && 's8-btn-primary'),
-                style: a.primary && accent ? { background: accent, borderColor: accent } : undefined,
-                ...(a.href?.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
-              },
-              a.label,
-            ),
-          ),
-        )
-      : null,
+    h('div', { className: 's8-hero-glow' }),
+    h(
+      'div',
+      { className: 's8-hero-inner' },
+      h(
+        'div',
+        { className: 's8-hero-copy' },
+        eyebrow ? h('span', { className: 's8-eyebrow' }, eyebrow) : null,
+        h('h1', { className: 's8-hero-title' }, title),
+        tagline ? h('p', { className: 's8-hero-tagline' }, tagline) : null,
+        actionEls,
+        statsEl,
+      ),
+      visual,
+    ),
+  );
+}
+
+/**
+ * Code window visual — the terminal/editor panel modern landing heroes put on
+ * the right of the headline. Lines are plain strings rendered in a code face.
+ */
+function CodeWindow({ title, lang, lines = [] }) {
+  return h(
+    'div',
+    { className: 's8-code' },
+    h(
+      'div',
+      { className: 's8-code-bar' },
+      h('span', { className: 's8-code-dots' },
+        h('i', { className: 's8-code-dot s8-code-dot-r' }),
+        h('i', { className: 's8-code-dot s8-code-dot-y' }),
+        h('i', { className: 's8-code-dot s8-code-dot-g' })),
+      h('span', { className: 's8-code-title' }, title || lang || 'terminal'),
+    ),
+    h(
+      'pre',
+      { className: 's8-code-body' },
+      h(
+        'code',
+        null,
+        ...lines.map((ln, i) =>
+          h('span', { key: i, className: 's8-code-line', 'data-line': i + 1 }, ln, '\n'),
+        ),
+      ),
+    ),
   );
 }
 
