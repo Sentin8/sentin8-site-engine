@@ -117,6 +117,17 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
           },
           blog: false,
           sitemap: {},
+          // Webpack-resolved CSS: the engine theme (s8-* design system) + the
+          // site's accent override. custom.css previously only @import'ed the
+          // engine theme — css-loader does NOT resolve package-export
+          // subpaths inside @import, so it silently no-oped and every s8-*
+          // class rendered unstyled (the "links look like one word" defect).
+          theme: {
+            customCss: [
+              '@sentin8/site-engine/src/theme.css',
+              './src/css/custom.css',
+            ],
+          },
         },
       ],
     ],
