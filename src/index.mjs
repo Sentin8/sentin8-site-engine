@@ -139,6 +139,17 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
     scripts: [],
     headTags: [
       { tagName: 'meta', attributes: { name: 'referrer', content: 'no-referrer' } },
+      // Quicksand - the default font family for all sites (owner decision
+      // 2026-10-16). Weights 300-700; the theme maps everything to <=700.
+      { tagName: 'link', attributes: { rel: 'preconnect', href: 'https://fonts.googleapis.com' } },
+      { tagName: 'link', attributes: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' } },
+      {
+        tagName: 'link',
+        attributes: {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap',
+        },
+      },
     ],
     ...(site.noindex ? { noIndex: true } : {}),
   };

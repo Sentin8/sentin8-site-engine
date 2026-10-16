@@ -4,7 +4,8 @@
  * SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Site-Engine
  * SPDX-License-Identifier: Apache-2.0
  *
- * theme.css - the Sentin8 websites design system (design §5): Inter,
+ * theme.css - the Sentin8 websites design system (design §5): Quicksand
+ * (Google Fonts, default family for all sites - owner decision 2026-10-16),
  * 4px grid, glass panels, Royal Gold platform accent, per-site accent
  * (injected by the config factory as --site-accent), dark-first, WCAG AA.
  * Import from the site's custom CSS: @import "@sentin8/site-engine/theme";
@@ -15,7 +16,8 @@
   --s8-glass-bg: rgba(255, 255, 255, 0.04);
   --s8-glass-border: rgba(255, 255, 255, 0.08);
   --s8-radius: 12px;
-  --ifm-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ifm-font-family-base: 'Quicksand', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
 }
 
 html[data-theme='light'] {
@@ -112,8 +114,8 @@ html[data-theme='light'] {
 }
 .s8-hero-title {
   font-size: clamp(2.4rem, 5.5vw, 3.8rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.05;
   margin: 0;
   text-align: left;
