@@ -35,7 +35,7 @@ html[data-theme='light'] {
 }
 .s8-start-title {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ifm-color-content-secondary, #b3b1ad);
@@ -66,7 +66,7 @@ html[data-theme='light'] {
   border-color: var(--site-accent);
 }
 .s8-start-label {
-  font-weight: 700;
+  font-weight: 400;
   font-size: 1rem;
   color: var(--site-accent);
   display: flex;
@@ -79,7 +79,7 @@ html[data-theme='light'] {
   color: var(--ifm-color-content-secondary, #b3b1ad);
 }
 .s8-start-go {
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .s8-hero {
@@ -114,7 +114,7 @@ html[data-theme='light'] {
 }
 .s8-hero-title {
   font-size: clamp(2.4rem, 5.5vw, 3.8rem);
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1.05;
   margin: 0;
@@ -170,7 +170,7 @@ html[data-theme='light'] .s8-map {
 .s8-map-dot-g { background: #28c840; }
 .s8-map-title {
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--ifm-color-content-secondary, #b3b1ad);
 }
 .s8-map-body {
@@ -192,7 +192,7 @@ html[data-theme='light'] .s8-map {
 }
 .s8-map-col-title {
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--site-accent);
@@ -229,7 +229,7 @@ html[data-theme='light'] .s8-map-item {
   background: var(--s8-glass-bg);
   backdrop-filter: blur(10px);
   color: inherit;
-  font-weight: 600;
+  font-weight: 350;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .s8-btn:hover {
@@ -254,7 +254,7 @@ html[data-theme='light'] .s8-map-item {
 }
 .s8-section h2 {
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: -0.01em;
   margin-bottom: 0.4rem;
 }
@@ -294,7 +294,7 @@ html[data-theme='light'] .s8-map-item {
   margin-bottom: 6px;
 }
 .s8-card-name {
-  font-weight: 700;
+  font-weight: 400;
   font-size: 1.02rem;
 }
 .s8-card-kind {
@@ -302,7 +302,7 @@ html[data-theme='light'] .s8-map-item {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--site-accent);
-  font-weight: 600;
+  font-weight: 350;
 }
 .s8-card-summary {
   margin: 0;
@@ -326,7 +326,7 @@ html[data-theme='light'] .s8-map-item {
   display: inline-block;
   margin-top: 12px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--site-accent);
   transition: transform 0.15s ease;
 }
@@ -359,7 +359,7 @@ html[data-theme='light'] .s8-map-item {
 }
 .s8-pillar-num {
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--site-accent);
   letter-spacing: 0.12em;
   margin-bottom: 8px;
@@ -395,7 +395,7 @@ html[data-theme='light'] .s8-map-item {
 .s8-api-table caption {
   caption-side: top;
   text-align: left;
-  font-weight: 600;
+  font-weight: 350;
   padding-bottom: 8px;
   color: var(--ifm-color-content-secondary, #b3b1ad);
 }
@@ -404,7 +404,7 @@ html[data-theme='light'] .s8-map-item {
   display: inline-block;
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 400;
   padding: 2px 7px;
   border-radius: 6px;
   letter-spacing: 0.04em;
@@ -447,7 +447,7 @@ html[data-theme='light'] .s8-map-item {
 
 .s8-chip {
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.05em;
   border: 1px solid;
   border-radius: 999px;
@@ -493,7 +493,7 @@ html[data-theme='light'] .s8-map-item {
   border-radius: 999px;
   border: 1px solid var(--site-accent);
   color: var(--site-accent);
-  font-weight: 700;
+  font-weight: 400;
   font-size: 0.85rem;
 }
 .s8-quickstart p {

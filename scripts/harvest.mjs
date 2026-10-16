@@ -27,6 +27,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import process from 'node:process';
+import { renderOpenApiPage } from '../src/openapi-page.mjs';
 
 const DEFAULT_BRANCH = 'main';
 const SIBLING_DIRS = ['../../', '../', './'];
@@ -108,12 +109,16 @@ for (const unit of units) {
   // The hand-authored {slug}/index.md owns the overview voice, so README
   // stays reference-only; the dossier (DESIGN/BUSINESS/SECURITY/CHANGELOG)
   // embeds inside the product tree AND mirrors into the reference tree.
+  // docs/openapi.json (WEB-14) renders to a static api.md page — services
+  // dump it via --print-registration --section=openapi; missing file simply
+  // skips (not every unit has an HTTP API).
   const sources = [
     ['README.md', 'overview', 'Overview', false],
     ['DESIGN.md', 'design', 'Architecture (DDD)', true],
     ['BUSINESS.md', 'business', 'Business rules (BRD)', true],
     ['SECURITY.md', 'security', 'Security', true],
     ['CHANGELOG.md', 'changelog', 'Changelog', true],
+    ['docs/openapi.json', 'api', 'API (OpenAPI)', true],
   ];
 
   // Typography normalization (site typography rule): the sites render with
@@ -141,10 +146,20 @@ for (const unit of units) {
   // Resolve all sources up front so indexes list only what exists.
   const resolved = [];
   for (const [file, outName, label, embed] of sources) {
-    const content = await resolveFile(repo, file, org);
+    let content = await resolveFile(repo, file, org);
     if (content === null) {
       console.warn(`harvest: ${repo}: ${file} not found (skipped)`);
       continue;
+    }
+    // The OpenAPI spec is the one non-markdown source: render it to a page
+    // (WEB-14) — the raw JSON stays in the unit repo, the site gets markdown.
+    if (file === 'docs/openapi.json') {
+      try {
+        content = renderOpenApiPage(JSON.parse(content));
+      } catch (err) {
+        console.warn(`harvest: ${repo}: ${file} unparsable (${err.message}) — skipped`);
+        continue;
+      }
     }
     resolved.push({ file, outName, label });
     // Every source lands in the consolidated reference tree...
