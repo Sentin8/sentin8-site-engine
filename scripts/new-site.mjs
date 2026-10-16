@@ -144,12 +144,31 @@ writeFileSync(
 import React from 'react';
 import Layout from '@theme/Layout';
 import {
-  Hero, Section, ${gridComponent}, AppGrid, SdkGrid, VerticalShowcase, SecurityPillars,
+  Hero, Section, StartHere, ${gridComponent}, AppGrid, SdkGrid, VerticalShowcase, SecurityPillars,
 } from '@sentin8/site-engine/components';
 import site from '../../site.json';
 
 const isPlatform = ${vertical === 'sentin8' ? 'true' : 'false'};
 const productPrefix = '${productPrefix}';
+
+const startHere = site.startHere || [
+  {
+    title: 'Product tour',
+    description: 'What ${vertical} is and what each product does — start here for the full picture.',
+    href: '/docs',
+    primary: true,
+  },
+  {
+    title: 'Security',
+    description: 'The guarantees every request inherits, in depth — the post-quantum, zero-secret model.',
+    href: '/docs/security',
+  },
+  {
+    title: 'Get started',
+    description: 'Clone one repo and build — the developer quickstart, samples, and API surfaces.',
+    href: '/docs/developers',
+  },
+];
 
 export default function Home() {
   return (
@@ -165,18 +184,21 @@ export default function Home() {
           ]}
         />
 
+        <StartHere items={startHere} />
+
         {site.units?.length ? (
           <Section
             id="products"
             title={isPlatform ? 'Platform services' : 'Products'}
             lead={isPlatform
-              ? 'Every platform service, one plane each: certificates, identity, domain truth, durable change signals.'
-              : 'Every service this vertical ships, each owning its own data and API surface.'}
+              ? 'Every platform service, one plane each: certificates, identity, domain truth, durable change signals. Click any card for its full detail — use cases, architecture, business rules.'
+              : 'Every service this vertical ships, each owning its own data and API surface. Click any card for its full dossier — use cases, architecture, business rules.'}
           >
             <${gridComponent}
               items={site.units.map((u) => ({
                 name: u.name,
                 slug: u.slug,
+                kind: u.kind,
                 summary: u.summary,
                 scopes: u.scopes,
                 href: '/docs/' + productPrefix + '/' + u.slug + '/',

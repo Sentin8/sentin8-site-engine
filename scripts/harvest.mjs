@@ -79,37 +79,44 @@ const units = [
 let harvested = 0;
 let failures = 0;
 
+const isPlatform = site.vertical === 'sentin8';
+const productDir = isPlatform ? 'services' : 'products';
+
 for (const unit of units) {
   const { slug, repo, org } = unit;
   if (!slug || !repo) continue;
 
-  const dir = path.join(outRoot, slug);
-  mkdirSync(dir, { recursive: true });
-
-  // Category metadata: the sidebar label for the harvested subtree.
+  // Routing (WEB §4.5, the product dossier): service/starter docs embed
+  // INSIDE the product tree; app docs inside the app tree; everything also
+  // lands in the consolidated reference tree.
+  const unitDir =
+    unit.kind === 'service' || unit.kind === 'starter'
+      ? path.join(siteDir, 'docs', productDir, slug)
+      : unit.kind === 'app'
+        ? path.join(siteDir, 'docs', 'apps', slug)
+        : path.join(siteDir, 'docs', 'sdk', slug);
+  mkdirSync(unitDir, { recursive: true });
+  const refDir = path.join(outRoot, slug);
+  mkdirSync(refDir, { recursive: true });
+  // Category metadata for the reference subtree.
   writeFileSync(
-    path.join(dir, '_category_.json'),
+    path.join(refDir, '_category_.json'),
     JSON.stringify({ label: unit.name || slug, position: 100 + (units.indexOf(unit) + 1) * 10 }, null, 2) + '\n',
   );
 
-  // The per-unit source files, in listing order: file → output name → label.
+  // The per-unit source files: file → output name → label → embed-in-product?
+  // The hand-authored {slug}/index.md owns the overview voice, so README
+  // stays reference-only; the dossier (DESIGN/BUSINESS/SECURITY/CHANGELOG)
+  // embeds inside the product tree AND mirrors into the reference tree.
   const sources = [
-    ['README.md', 'overview', 'Overview'],
-    ['DESIGN.md', 'design', 'Architecture (DDD)'],
-    ['BUSINESS.md', 'business', 'Business rules (BRD)'],
-    ['SECURITY.md', 'security', 'Security'],
-    ['CHANGELOG.md', 'changelog', 'Changelog'],
+    ['README.md', 'overview', 'Overview', false],
+    ['DESIGN.md', 'design', 'Architecture (DDD)', true],
+    ['BUSINESS.md', 'business', 'Business rules (BRD)', true],
+    ['SECURITY.md', 'security', 'Security', true],
+    ['CHANGELOG.md', 'changelog', 'Changelog', true],
   ];
 
-  // Resolve all sources up front so the index lists only what exists.
-  const resolved = [];
-  for (const [file, outName, label] of sources) {
-    const content = await resolveFile(repo, file, org);
-    if (content === null) {
-      console.warn(`harvest: ${repo}: ${file} not found (skipped)`);
-      continue;
-    }
-    resolved.push({ outName, label });
+  const writeFileWithFrontmatter = (dir, file, outName, label, content) => {
     const fm = [
       '---',
       `title: ${JSON.stringify(`${unit.name || slug} — ${label}`)}`,
@@ -124,13 +131,27 @@ for (const unit of units) {
       '',
     ].join('\n');
     writeFileSync(path.join(dir, `${outName}.md`), fm + content + '\n');
+  };
+
+  // Resolve all sources up front so indexes list only what exists.
+  const resolved = [];
+  for (const [file, outName, label, embed] of sources) {
+    const content = await resolveFile(repo, file, org);
+    if (content === null) {
+      console.warn(`harvest: ${repo}: ${file} not found (skipped)`);
+      continue;
+    }
+    resolved.push({ file, outName, label });
+    // Every source lands in the consolidated reference tree…
+    writeFileWithFrontmatter(refDir, file, outName, label, content);
+    // …and the dossier sources also embed inside the product/app tree.
+    if (embed) writeFileWithFrontmatter(unitDir, file, outName, label, content);
     harvested++;
   }
 
-  // Category landing: makes /docs/reference/{slug}/ a real page, listing
-  // only the pages that were actually harvested.
+  // Reference landing: lists only what was actually harvested.
   writeFileSync(
-    path.join(dir, 'index.md'),
+    path.join(refDir, 'index.md'),
     [
       '---',
       `title: ${JSON.stringify(unit.name || slug)}`,

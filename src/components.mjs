@@ -13,6 +13,36 @@ import { VERTICAL_ACCENTS as ACCENTS } from './theme-vars.mjs';
 /* Landing & hero                                                      */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Where-to-start strip: explicit titled links with one-line explanations —
+ * the first thing a new visitor reads after the hero (WEB §4.5).
+ */
+export function StartHere({ items }) {
+  return h(
+    'nav',
+    { className: 's8-start', 'aria-label': 'Where to start' },
+    h('p', { className: 's8-start-title' }, 'Where to start'),
+    h(
+      'div',
+      { className: 's8-start-grid' },
+      (items || []).map((it, i) =>
+        h(
+          'a',
+          {
+            key: i,
+            href: it.href,
+            className: cx('s8-start-link', it.primary && 's8-start-primary'),
+            ...(it.href?.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+          },
+          h('span', { className: 's8-start-label' }, it.title),
+          h('span', { className: 's8-start-desc' }, it.description),
+          h('span', { className: 's8-start-go' }, '→'),
+        ),
+      ),
+    ),
+  );
+}
+
 /** Hero banner for landing pages: title, tagline, optional CTA links. */
 export function Hero({ title, tagline, actions = [], accent }) {
   return h(
@@ -75,6 +105,7 @@ function cardGrid(kind, items, { linkPrefix = '', keyPrefix = kind } = {}) {
             it.scopes.slice(0, 4).map((s, j) => h('span', { key: j, className: 's8-scope' }, s)),
             it.scopes.length > 4 ? h('span', { key: 'more', className: 's8-scope s8-scope-more' }, `+${it.scopes.length - 4}`) : null)
         : null,
+      h('span', { className: 's8-card-go' }, 'Explore →'),
     ),
   );
   return h('div', { className: cx('s8-grid', `s8-grid-${keyPrefix}`), key: keyPrefix }, ...cards);
@@ -125,6 +156,7 @@ export function VerticalShowcase({ items }) {
           h('span', { className: 's8-card-name' }, it.name),
           h('span', { className: 's8-chip', style: chipStyle(it.accent) }, it.chip || `${it.slug}.dev`)),
         h('p', { className: 's8-card-summary' }, it.summary),
+        h('span', { className: 's8-card-go' }, 'Visit site →'),
       ),
     ),
   );
