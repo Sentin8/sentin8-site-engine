@@ -122,9 +122,11 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
           // engine theme — css-loader does NOT resolve package-export
           // subpaths inside @import, so it silently no-oped and every s8-*
           // class rendered unstyled (the "links look like one word" defect).
+          // Docusaurus resolves non-relative customCss entries against the
+          // site root, so the engine CSS goes through node_modules explicitly.
           theme: {
             customCss: [
-              '@sentin8/site-engine/src/theme.css',
+              'node_modules/@sentin8/site-engine/src/theme.css',
               './src/css/custom.css',
             ],
           },
