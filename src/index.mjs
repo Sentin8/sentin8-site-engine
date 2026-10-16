@@ -98,7 +98,7 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
             items: ALL_SITES.map((s) => ({ label: s.name, href: `https://${s.key}.dev/` })),
           },
         ],
-        copyright: `Copyright Logically Magic Inc.`,
+        copyright: `Copyright &copy; <a href="https://www.logicallymagic.com" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Logically Magic</a> ${new Date().getFullYear()}`,
       },
       prism: {
         theme: undefined,

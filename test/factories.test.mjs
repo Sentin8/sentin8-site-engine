@@ -50,7 +50,11 @@ test('makeSiteConfig groups vertical accent and custom fields', () => {
 
 test('footer copyright is the company line, never a per-project variant', () => {
   const cfg = makeSiteConfig(site);
-  assert.equal(cfg.themeConfig.footer.copyright, 'Copyright Logically Magic Inc.');
+  const cp = cfg.themeConfig.footer.copyright;
+  assert.ok(cp.includes('Copyright &copy;'), 'copyright symbol present');
+  assert.ok(cp.includes('https://www.logicallymagic.com'), 'company link present');
+  assert.ok(cp.endsWith(String(new Date().getFullYear())), 'current year present');
+  assert.ok(!cp.includes('Docusaurus'), 'no per-project variant');
 });
 
 test('Quicksand is the default font family, loaded from Google Fonts', () => {
