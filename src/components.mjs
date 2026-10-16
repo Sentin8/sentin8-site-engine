@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Site-Engine
 // SPDX-License-Identifier: Apache-2.0
 
-// components.mjs — the MDX-importable component set (design §5). All
+// components.mjs - the MDX-importable component set (design §5). All
 // components are JSX-free (h()) so they compile inside node_modules.
 
 import { h, cx, chipStyle } from './h.mjs';
@@ -14,7 +14,7 @@ import { VERTICAL_ACCENTS as ACCENTS } from './theme-vars.mjs';
 /* ------------------------------------------------------------------ */
 
 /**
- * Where-to-start strip: explicit titled links with one-line explanations —
+ * Where-to-start strip: explicit titled links with one-line explanations -
  * the first thing a new visitor reads after the hero (WEB §4.5).
  */
 export function StartHere({ items }) {
@@ -43,32 +43,84 @@ export function StartHere({ items }) {
   );
 }
 
+/**
+ * Hero visual: the whole-system map - every unit, grouped by plane, rendered
+ * as a compact panel. Unlike a cherry-picked code snippet, this shows the
+ * ENTIRE platform/vertical at a glance (the WEB-12 lesson: a single-service
+ * visual misrepresents the whole).
+ */
+export function SystemMap({ name, planes, groups = [], services = [], apps = [] }) {
+  // Default grouping: one flat "services" group + apps, when no planes given.
+  const columns = planes?.length
+    ? planes.map((p) => ({ title: p.title, items: (p.items || []).map((s) => s.name || s) }))
+    : [
+        { title: 'Services', items: services.map((u) => u.name || u.slug) },
+        ...(apps.length ? [{ title: 'Apps', items: apps.map((a) => a.name || a.slug) }] : []),
+        ...(groups || []),
+      ];
+
+  return h(
+    'div',
+    { className: 's8-map', 'aria-label': `${name} system map` },
+    h('div', { className: 's8-map-bar' },
+      h('span', { className: 's8-map-dots' },
+        h('i', { className: 's8-map-dot s8-map-dot-r' }),
+        h('i', { className: 's8-map-dot s8-map-dot-y' }),
+        h('i', { className: 's8-map-dot s8-map-dot-g' })),
+      h('span', { className: 's8-map-title' }, `${name} - the whole system`)),
+    h(
+      'div',
+      { className: 's8-map-body' },
+      ...columns.map((col, ci) =>
+        h(
+          'div',
+          { key: ci, className: 's8-map-col' },
+          h('span', { className: 's8-map-col-title' }, col.title),
+          ...col.items.map((n, i) => h('span', { key: i, className: 's8-map-item' }, n)),
+        ),
+      ),
+    ),
+  );
+}
+
 /** Hero banner for landing pages: title, tagline, optional CTA links. */
-export function Hero({ title, tagline, actions = [], accent }) {
+export function Hero({ title, tagline, actions = [], accent, visual }) {
+  const actionEls = actions.length
+    ? h(
+        'div',
+        { className: 's8-hero-actions' },
+        actions.map((a, i) =>
+          h(
+            'a',
+            {
+              key: i,
+              href: a.href,
+              className: cx('s8-btn', a.primary && 's8-btn-primary'),
+              style: a.primary && accent ? { background: accent, borderColor: accent } : undefined,
+              ...(a.href?.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+            },
+            a.label,
+          ),
+        ),
+      )
+    : null;
+
   return h(
     'header',
     { className: 's8-hero' },
-    h('h1', null, title),
-    tagline ? h('p', { className: 's8-hero-tagline' }, tagline) : null,
-    actions.length
-      ? h(
-          'div',
-          { className: 's8-hero-actions' },
-          actions.map((a, i) =>
-            h(
-              'a',
-              {
-                key: i,
-                href: a.href,
-                className: cx('s8-btn', a.primary && 's8-btn-primary'),
-                style: a.primary && accent ? { background: accent, borderColor: accent } : undefined,
-                ...(a.href?.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
-              },
-              a.label,
-            ),
-          ),
-        )
-      : null,
+    h('div', { className: 's8-hero-glow' }),
+    h(
+      'div',
+      { className: 's8-hero-inner' },
+      h(
+        'div',
+        { className: 's8-hero-copy' },
+        h('h1', { className: 's8-hero-title' }, title),
+        tagline ? h('p', { className: 's8-hero-tagline' }, tagline) : null,
+        actionEls,
+      ),
+      visual || null,
+    ),
   );
 }
 
@@ -193,7 +245,7 @@ export function MethodBadge({ method }) {
   return h('span', { className: cx('s8-method', `s8-method-${m}`) }, m);
 }
 
-/** One API endpoint row: METHOD path — description — scope. */
+/** One API endpoint row: METHOD path - description - scope. */
 export function ApiRow({ method, path, description, scope }) {
   return h(
     'tr',
@@ -224,7 +276,7 @@ export function ApiTable({ caption, rows }) {
 /* ------------------------------------------------------------------ */
 
 /**
- * Cross-vertical reference link — renders an external absolute link with
+ * Cross-vertical reference link - renders an external absolute link with
  * the target vertical's accent chip (design §4.6).
  */
 export function CrossSiteLink({ url, label, vertical }) {
@@ -250,7 +302,7 @@ export function ProvenanceNote({ repo }) {
     h('p', null,
       'This page is rendered at build time from ',
       h('code', null, repo),
-      ' — the repository stays the source of truth.'),
+      ' - the repository stays the source of truth.'),
   );
 }
 

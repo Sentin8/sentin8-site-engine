@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Site-Engine
 // SPDX-License-Identifier: Apache-2.0
 
-// factories.test.mjs — node:test smoke for the config/sidebar factories.
+// factories.test.mjs - node:test smoke for the config/sidebar factories.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

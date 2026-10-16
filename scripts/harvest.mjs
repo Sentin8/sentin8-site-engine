@@ -4,20 +4,20 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Site-Engine
 // SPDX-License-Identifier: Apache-2.0
 
-// harvest.mjs — build-time docs harvester (design/sentin8-websites-design.md §4.2).
+// harvest.mjs - build-time docs harvester (design/sentin8-websites-design.md §4.2).
 //
 // For every unit in site.json: pull README.md / DESIGN.md / BUSINESS.md /
 // SECURITY.md / CHANGELOG.md from the unit's own repository, and emit them
 // under docs/reference/{unit}/ as reference pages:
-//   - README.md   → overview.mdx (format: md — maintainer prose may contain
+//   - README.md   → overview.mdx (format: md - maintainer prose may contain
 //                   raw HTML/angle brackets that MDX would reject)
 //   - DESIGN.md   → design.md
 //   - BUSINESS.md → business.md
 //   - SECURITY.md → security.md
 //   - CHANGELOG.md → changelog.md
 //
-// Resolution order: local sibling folder (../../{repo}/) first — local dev
-// and the aggregation tree never need the network — then
+// Resolution order: local sibling folder (../../{repo}/) first - local dev
+// and the aggregation tree never need the network - then
 // raw.githubusercontent.com/{org}/{repo}/main/{file}. A missing remote file
 // fails the build (docs never silently trail).
 //
@@ -56,7 +56,7 @@ writeFileSync(
     '# Reference',
     '',
     `Architecture deep-dives harvested at build time from each unit's own`,
-    'repository — README (overview), DESIGN (DDD), BUSINESS (BRD), and the',
+    'repository - README (overview), DESIGN (DDD), BUSINESS (BRD), and the',
     'canonical SECURITY. The repositories stay the source of truth; the',
     'harvester re-renders this section on every build.',
     '',
@@ -116,33 +116,26 @@ for (const unit of units) {
     ['CHANGELOG.md', 'changelog', 'Changelog', true],
   ];
 
-  const writeFileWithFrontmatter = (dir, file, outName, label, content) => {
-    const fm = [
-      '---',
-      `title: ${JSON.stringify(`${unit.name || slug} — ${label}`)}`,
-      `sidebar_label: ${JSON.stringify(label)}`,
-      // Docusaurus 3.10: per-file format lives under the mdx frontmatter
-      // key (mdx-loader reads frontMatter.mdx.format) — keeps raw HTML /
-      // angle brackets in maintainer docs from being parsed as JSX.
-      'mdx:',
-      '  format: md',
-      `custom_edit_url: https://github.com/${org}/${repo}/edit/main/${file}`,
-      '---',
-      '',
-    ].join('\n');
-    writeFileSync(path.join(dir, `${outName}.md`), fm + content + '\n');
-  };
+// Typography normalization (site typography rule): the sites render with
+// plain hyphens; source-repo prose may use long dashes and is normalized at
+// render time so the sites stay consistent without touching the sources.
+const normalizeTypography = (s) => s.replaceAll(' \u2014 ', ' - ').replaceAll('\u2014', '-');
 
-  // Resolve all sources up front so indexes list only what exists.
-  const resolved = [];
-  for (const [file, outName, label, embed] of sources) {
-    const content = await resolveFile(repo, file, org);
-    if (content === null) {
-      console.warn(`harvest: ${repo}: ${file} not found (skipped)`);
-      continue;
-    }
-    resolved.push({ file, outName, label });
-    // Every source lands in the consolidated reference tree…
+const writeFileWithFrontmatter = (dir, file, outName, label, content) => {
+  const fm = [
+    '---',
+    `title: ${JSON.stringify(`${unit.name || slug} - ${label}`)}`,
+    `sidebar_label: ${JSON.stringify(label)}`,
+    // Docusaurus 3.10: per-file format lives under the mdx frontmatter
+    // key (mdx-loader reads frontMatter.mdx.format) - keeps raw HTML /
+    // angle brackets in maintainer docs from being parsed as JSX.
+    'mdx:',
+    '  format: md',
+    `custom_edit_url: https://github.com/${org}/${repo}/edit/main/${file}`,
+    '---',
+    '',
+  ].join('\n');
+  writeFileSync(path.join(dir, `${outName}.md`), fm + normalizeTypography(content) + '\n');
     writeFileWithFrontmatter(refDir, file, outName, label, content);
     // …and the dossier sources also embed inside the product/app tree.
     if (embed) writeFileWithFrontmatter(unitDir, file, outName, label, content);
@@ -158,9 +151,9 @@ for (const unit of units) {
       `sidebar_label: ${JSON.stringify(unit.name || slug)}`,
       '---',
       '',
-      `# ${unit.name || slug} — reference`,
+      `# ${unit.name || slug} - reference`,
       '',
-      `Rendered at build time from \`github.com/${org}/${repo}\` — the`,
+      `Rendered at build time from \`github.com/${org}/${repo}\` - the`,
       'repository stays the source of truth.',
       '',
       ...resolved.map((r) => `- [${r.label}](${r.outName})`),

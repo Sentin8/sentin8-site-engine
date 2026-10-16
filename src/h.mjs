@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Site-Engine
 // SPDX-License-Identifier: Apache-2.0
 
-// h.mjs — JSX-free React authoring helper. The engine ships inside
+// h.mjs - JSX-free React authoring helper. The engine ships inside
 // node_modules; Docusaurus excludes node_modules from its Babel/MDX pipeline,
 // so every engine component is written with plain createElement. Site-local
 // pages import the component set and use MDX freely.

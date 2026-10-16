@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Site-Engine
 // SPDX-License-Identifier: Apache-2.0
 
-// theme-vars.mjs — per-site theming contract consumed by theme.css and the
+// theme-vars.mjs - per-site theming contract consumed by theme.css and the
 // config factory. The platform accent is Royal Gold; each vertical site
 // overrides --site-accent via site.json (design/sentin8-websites-design.md §5).
 
@@ -11,7 +11,7 @@ export const PLATFORM_ACCENT = '#D4AF37';
 export const PLATFORM_NAME = 'Sentin8';
 
 /**
- * Vertical accents — the per-site brand chips rendered across all 7 sites
+ * Vertical accents - the per-site brand chips rendered across all 7 sites
  * (vertical showcase cards, CrossSiteLink chips). Keep in sync with each
  * vertical's site.json "accent" (the site-local value is authoritative).
  */
