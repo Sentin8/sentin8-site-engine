@@ -18,6 +18,8 @@
   --s8-radius: 12px;
   --ifm-font-family-base: 'Quicksand', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --ifm-font-family-monospace: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+  --ifm-heading-font-weight: 500;
+  --ifm-font-weight-bold: 500;
 }
 
 html[data-theme='light'] {
