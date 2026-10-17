@@ -231,7 +231,7 @@ html[data-theme='light'] .s8-map-item {
   background: var(--s8-glass-bg);
   backdrop-filter: blur(10px);
   color: inherit;
-  font-weight: 350;
+  font-weight: 450;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .s8-btn:hover {
@@ -296,7 +296,7 @@ html[data-theme='light'] .s8-map-item {
   margin-bottom: 6px;
 }
 .s8-card-name {
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.02rem;
 }
 .s8-card-kind {
@@ -304,7 +304,7 @@ html[data-theme='light'] .s8-map-item {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--site-accent);
-  font-weight: 350;
+  font-weight: 450;
 }
 .s8-card-summary {
   margin: 0;
@@ -397,7 +397,7 @@ html[data-theme='light'] .s8-map-item {
 .s8-api-table caption {
   caption-side: top;
   text-align: left;
-  font-weight: 350;
+  font-weight: 450;
   padding-bottom: 8px;
   color: var(--ifm-color-content-secondary, #b3b1ad);
 }
