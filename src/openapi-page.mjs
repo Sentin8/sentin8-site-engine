@@ -12,12 +12,19 @@
 // A static spec→markdown page needs no client JS, rides search + sidebar
 // natively, and stays in the sites' typographic voice.
 
+// Colon-chained identifiers (OAuth scopes, event names: bank8:ledger:postings:write,
+// sentin8:bus:produce) are CODE semantics — and remark-emoji would otherwise read the
+// inner `:segment:` as an emoji shortcode (`:ledger:` → 📒). Backtick-wrapping every
+// colon-chain both renders it as code and shields it from the emoji transform.
+const codeChain = /\b[a-z0-9][a-z0-9_-]*(?::[a-z0-9][a-z0-9_-]*){1,}\b/g;
+
 const escCell = (s) =>
   String(s)
     .replace(/\|/g, '\\|')
     .replace(/\n/g, ' ')
     .replace(/\{/g, '&#123;')
-    .replace(/\}/g, '&#125;');
+    .replace(/\}/g, '&#125;')
+    .replace(codeChain, (m) => '`' + m + '`');
 
 const row = (cells) => '| ' + cells.map(escCell).join(' | ') + ' |';
 
@@ -28,7 +35,7 @@ const row = (cells) => '| ' + cells.map(escCell).join(' | ') + ' |';
 export function renderOpenApiPage(spec) {
   const lines = [];
   if (spec.info?.description) {
-    lines.push(String(spec.info.description).trim().split('\n').slice(0, 3).join(' '));
+    lines.push(escCell(String(spec.info.description).trim().split('\n').slice(0, 3).join(' ')));
     lines.push('');
   }
   lines.push('> Generated from the service\u2019s OpenAPI 3.1 spec (`docs/openapi.json`,');
@@ -109,12 +116,12 @@ export function renderOpenApiPage(spec) {
       lines.push(`### \`${method.toUpperCase()} ${path}\``);
       lines.push('');
       if (op.summary) {
-        lines.push(op.summary);
+        lines.push(escCell(op.summary).replace(/`/g, (m, o, s) => m));
         lines.push('');
       }
       const scopes = (op.security || []).flatMap((s) => Object.keys(s)).filter(Boolean);
       if (scopes.length) {
-        lines.push(`Gate: ${scopes.map((s) => `\`${s}\``).join(', ')}`);
+        lines.push(`Gate: ${scopes.map((s) => '`' + s + '`').join(', ')}`);
         lines.push('');
       }
       const content = op.requestBody?.content;

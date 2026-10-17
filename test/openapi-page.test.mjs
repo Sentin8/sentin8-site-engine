@@ -70,3 +70,19 @@ test('renderOpenApiPage handles an empty spec', () => {
   const md = renderOpenApiPage({ openapi: '3.1.0', info: { title: 'x' }, paths: {} });
   assert.ok(md.includes('**0 endpoints**'), 'zero endpoints line');
 });
+test('renderOpenApiPage shields colon-chained scopes from remark-emoji', () => {
+  const spec2 = JSON.parse(JSON.stringify(spec));
+  spec2.paths['/v1/things'].post.responses['403'] = {
+    description: 'Missing bank8:ledger:things:write scope',
+  };
+  const md = renderOpenApiPage(spec2);
+  assert.ok(md.includes('Missing `bank8:ledger:things:write` scope'), 'scope backticked in cell');
+  assert.ok(!/Missing bank8:/.test(md), 'no bare scope left');
+  // event names too
+  const md2 = renderOpenApiPage({
+    openapi: '3.1.0',
+    info: { title: 'x' },
+    paths: { '/a': { get: { tags: ['t'], summary: 'emits sentin8:bus:produce then done', responses: {} } } },
+  });
+  assert.ok(md2.includes('emits `sentin8:bus:produce`'), 'event name backticked');
+});
