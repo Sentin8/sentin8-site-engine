@@ -6,6 +6,9 @@
 // index.mjs - the config + sidebar factories every site calls. One import
 // produces the whole Docusaurus config from site.json (design §4.3, §5).
 
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import process from 'node:process';
 import { VERTICAL_ACCENTS } from './theme-vars.mjs';
 
 const ALL_SITES = [
@@ -239,7 +242,7 @@ export function buildOpenApiPlugins(site) {
  * where fs is absent — degrade to "no interactive API" instead of throwing. */
 function await_fs() {
   try {
-    return require('node:fs');
+    return createRequire(import.meta.url)('node:fs');
   } catch (err) {
     return null;
   }
