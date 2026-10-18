@@ -213,15 +213,18 @@ export function makeSidebars() {
  */
 export function buildOpenApiPlugins(site) {
   const fs = await_fs();
-  if (!fs || !fs.existsSync('openapi/config.json')) return [];
+  const sidecarPath = path.join(process.cwd(), 'openapi', 'config.json');
+  if (!fs || !fs.existsSync(sidecarPath)) return [];
   let entries;
   try {
-    entries = JSON.parse(fs.readFileSync('openapi/config.json', 'utf8'));
+    entries = JSON.parse(fs.readFileSync(sidecarPath, 'utf8'));
   } catch (err) {
-    console.warn(`site-engine: openapi/config.json unparsable (${err.message}) — interactive API reference skipped`);
+    console.warn(`site-engine: ${sidecarPath} unparsable (${err.message}) — interactive API reference skipped`);
     return [];
   }
-  if (!Array.isArray(entries) || entries.length === 0) return [];
+  if (!entries || typeof entries !== 'object') return [];
+  const keys = Object.keys(entries);
+  if (keys.length === 0) return [];
   return [
     'docusaurus-plugin-openapi-docs',
     {
