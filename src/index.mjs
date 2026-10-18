@@ -222,11 +222,14 @@ export function buildOpenApiPlugins(site) {
     return [];
   }
   if (!Array.isArray(entries) || entries.length === 0) return [];
-  return ['docusaurus-plugin-openapi-docs', /** @type {any} */ ({}), {
-    id: 'openapi-docs',
-    docsPluginId: 'default',
-    config: entries,
-  }];
+  return [
+    'docusaurus-plugin-openapi-docs',
+    {
+      id: 'openapi-docs',
+      docsPluginId: 'default',
+      config: entries,
+    },
+  ];
 }
 
 /** Node fs for config-time reads; the module also loads in tooling contexts

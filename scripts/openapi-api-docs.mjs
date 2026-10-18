@@ -51,7 +51,7 @@ async function main() {
   rmSync(specsDir, { recursive: true, force: true });
   mkdirSync(specsDir, { recursive: true });
 
-  const entries = [];
+  const entries = {};
 
   for (const unit of units) {
     const { slug, repo, org } = unit;
@@ -60,18 +60,14 @@ async function main() {
     if (!spec) continue;
 
     writeFileSync(path.join(specsDir, `${slug}-spec.json`), JSON.stringify(spec, null, 2) + '\n');
-    entries.push({
-      id: slug,
+    entries[slug] = {
       specPath: `openapi/${slug}-spec.json`,
       outputDir: `api/${slug}`,
-      docsPluginId: 'default',
-      category: { title: unit.name || slug, slug: slug },
-      description: `Interactive OpenAPI documentation for ${unit.name || slug}.`,
       sidebarOptions: {
         groupPathsBy: 'tag',
         categoryLinkSource: 'info',
       },
-    });
+    };
   }
 
   writeFileSync(path.join(siteDir, 'openapi', 'config.json'), JSON.stringify(entries, null, 2) + '\n');
