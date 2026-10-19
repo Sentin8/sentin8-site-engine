@@ -21,6 +21,19 @@ const ALL_SITES = [
   { key: 'email8', name: 'Email8' },
 ];
 
+/** webpack module-concatenation fix for the openapi-docs plugin/theme
+ * (OQ-4): `Cannot get final name for export '__esModule'` — webpack 5's
+ * ConcatenatedModule cannot model a CJS module whose `__esModule` marker is
+ * created via Object.defineProperty. Disabling concatenation for the site
+ * build keeps the plugin/theme interop intact without dropping the
+ * interactive API layer. */
+const webpackConcatFixPlugin = () => ({
+  name: 'sentin8-site-engine-openapi-concat-fix',
+  configureWebpack() {
+    return { optimization: { concatenateModules: false } };
+  },
+});
+
 /**
  * Build the full Docusaurus config for a site from its site.json inventory.
  * Returns the config object to spread into docusaurus.config.js.
@@ -77,12 +90,18 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
     themes: ['@docusaurus/theme-mermaid', 'docusaurus-theme-openapi-docs'],
     plugins: [
       // Interactive OpenAPI reference (OQ-4 resolution upgrade): one plugin
-      // instance per harvested spec. The plugin's markdown generator runs
-      // at build; the per-unit entries in `openapi/config.yaml` (written by
-      // `scripts/openapi-api-docs.mjs` at harvest) drive it. Pages render
-      // under /api/{unit}/{path} with request/response schema trees; the
-      // static typographic `api.md` stays for search + the dossier voice.
+      // instance covers every harvested spec (per-unit entries in
+      // `openapi/config.json`, written by `scripts/openapi-api-docs.mjs` at
+      // harvest). Pages render under docs/api/{unit}/** with
+      // request/response schema trees; the static typographic `api.md`
+      // stays for search + the dossier voice.
       ...buildOpenApiPlugins(site),
+      // webpack fix (OQ-4): the openapi-docs plugin + theme CJS libs trip
+      // webpack 5's ConcatenatedModule (`Cannot get final name for export
+      // '__esModule'` — the __esModule marker is created via
+      // Object.defineProperty, which concatenation cannot model); disable
+      // concatenation instead of giving up the interactive layer.
+      webpackConcatFixPlugin,
     ],
     themeConfig: {
       mermaid: { theme: { dark: 'dark', light: 'default' } },
