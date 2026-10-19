@@ -204,6 +204,19 @@ try {
       }
     }
   }
+  // Hierarchical API sidebar: path-segment trie per unit, built from the
+  // generated pages (WEB design §2 OQ-4 sidebar rule). Consumed by the
+  // engine's makeSidebars() at config time.
+  const { writeHierarchicalSidebar } = await import(path.join(engineScriptsDir, 'openapi-api-docs.mjs'));
+  if (existsSync(configJson)) {
+    for (const slug of Object.keys(JSON.parse(readFileSync(configJson, 'utf8')))) {
+      // Stale slice first: the plugin skips rewriting existing pages, but the
+      // tree must reflect the current generated set.
+      rmSync(path.join(siteDir, 'docs', 'api', slug, 'sidebar.json'), { force: true });
+      const n = writeHierarchicalSidebar(siteDir, slug);
+      if (n > 0) console.log(`harvest: api tree: ${slug} (${n} operations)`);
+    }
+  }
 } catch (err) {
   console.warn(`harvest: interactive API stage skipped (${err.message})`);
 }

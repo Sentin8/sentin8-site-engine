@@ -27,7 +27,7 @@
 // api.md fallback is retired); the engine's sidebar factory merges the
 // generated per-unit sidebar slices.
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -76,6 +76,167 @@ async function main() {
 
   writeFileSync(path.join(siteDir, 'openapi', 'config.json'), JSON.stringify(entries, null, 2) + '\n');
   console.log(`openapi-api-docs: ${entries.length} unit spec(s) prepared under openapi/`);
+}
+
+/** Build the hierarchical API sidebar slice for one unit from its generated
+ * pages (docs/api/{slug}/*.api.mdx). Writes `docs/api/{slug}/sidebar.json`
+ * consumed by the engine's `makeSidebars()` (which merges the per-unit
+ * slices into the docs sidebar).
+ *
+ * Structure: a collapsible category per path segment - `ledger` > `v1` >
+ * `accounts` > `{id}` > ... - leaves are the operations carrying their
+ * page id, a `METHOD + tail` label, and the method chip class. Single-child
+ * category chains are compressed (`v1 > accounts > {id} > statements`
+ * reads `accounts/{id}/statements`) so a common prefix never fans out into
+ * a lone-child chain; the common first segments stay visible at the top
+ * level per the owner's tree request.
+ *
+ * @param {string} siteDir - the site root (pages live under docs/api/{slug})
+ * @param {string} slug - the unit slug (subdir of docs/api)
+ */
+export function writeHierarchicalSidebar(siteDir, slug) {
+  const unitDir = path.join(siteDir, 'docs', 'api', slug);
+  const ops = collectOperations(unitDir, slug);
+  if (ops.length === 0) return 0;
+  const root = buildPathTrie(ops);
+  const rootItems = trieToSidebar(root, { pageId: null });
+  // The whole tree rides in one collapsible category named for the unit slug
+  // (its link points at the unit's intro doc so opening the menu lands
+  // somewhere useful).
+  const firstDoc = findFirstDoc(rootItems);
+  const unitCategory = {
+    type: 'category',
+    label: slug,
+    ...(firstDoc ? { link: { type: 'doc', id: firstDoc } } : {}),
+    items: rootItems,
+    collapsed: true,
+  };
+  writeFileSync(path.join(unitDir, 'sidebar.json'), JSON.stringify([unitCategory], null, 2) + '\n');
+  return ops.length;
+}
+
+/** Read every generated api page in the unit dir and extract the sidebar
+ * triple: { id, method, path } (id from frontmatter, method + path from the
+ * normalized sidebar_label). Pages the plugin wrote without a parseable
+ * label are skipped - they cannot be placed in the path trie. */
+function collectOperations(unitDir, slug) {
+  const ops = [];
+  if (!existsSync(unitDir)) return ops;
+  for (const fn of readdirSync(unitDir).sort()) {
+    if (!fn.endsWith('.api.mdx')) continue;
+    const text = readFileSync(path.join(unitDir, fn), 'utf8');
+    const fm = parseFrontmatter(text);
+    if (!fm.id || !fm.label) continue;
+    // The label is quoted YAML: "\"`POST /v1/accounts`\"" - strip the double
+    // quotes first, then the backticks around the verb-included label.
+    const m = /^(?:["'])?([A-Z]+) (\/.*?)(?:["'])?$/s.exec(fm.label.replace(/^["']|["']$/g, '').replace(/`/g, ''));
+    if (!m) continue;
+    ops.push({ id: fm.id, method: m[1], path: m[2], base: `api/${slug}/` });
+  }
+  return ops;
+}
+
+/** Minimal frontmatter reader: the two keys we need as scalars. */
+function parseFrontmatter(text) {
+  const m = /^---\n([\s\S]*?)\n---/.exec(text);
+  if (!m) return {};
+  const id = /^id:\s*["'`]?([^"'`\n]+?)["'`]?\s*$/m.exec(m[1]);
+  const label = /^sidebar_label:\s*(.*)$/m.exec(m[1]);
+  return { id: id && id[1].trim(), label: label && label[1].trim() };
+}
+
+/** Insert one operation {method, path} into the trie keyed by path segments. */
+function buildPathTrie(ops) {
+  const root = { children: new Map(), ops: [] };
+  for (const op of ops) {
+    let node = root;
+    const segments = op.path.split('/').filter(Boolean);
+    for (const seg of segments) {
+      if (!node.children.has(seg)) node.children.set(seg, { children: new Map(), ops: [] });
+      node = node.children.get(seg);
+    }
+    node.ops.push(op);
+  }
+  return root;
+}
+
+/** Convert a trie node into Docusaurus sidebar items. Returns a category item
+ * when the node has children or multiple/mixed ops (never a bare page list
+ * without grouping), and collapses single-child chains. The category links
+ * to its first descendant page (Docusaurus opens it expanded). Leaf labels
+ * are `METHOD + tail` where tail is the path tail distinguishable within the
+ * parent chain (falls back to the full path). */
+function trieToSidebar(node, ctx) {
+  return walkTrie(node, ctx, []);
+}
+
+/** Recursive builder: `prefixSegments` carries the (possibly compressed) path
+ * this subtree represents. Returns the sidebar ITEMS for the subtree (never a
+ * wrapper). A node with children produces ONE category labeled with its
+ * segment path (`v1/accounts/{id}`); leaves carry `METHOD + tail`, where the
+ * tail is the distinguishing segments after the category prefix when a tail
+ * exists, else the full path. Root nodes (empty prefix) return their items
+ * un-wrapped. */
+function walkTrie(node, ctx, prefixSegments) {
+  let segments = [...prefixSegments];
+  let cur = node;
+  // Compress chains: one child + no own ops -> fold the child segment in.
+  while (cur.children.size === 1 && cur.ops.length === 0) {
+    const [seg, child] = [...cur.children.entries()][0];
+    segments = [...segments, seg];
+    cur = child;
+  }
+  const childItems = [];
+  for (const [seg, child] of [...cur.children.entries()]
+    .sort((a, b) => segmentOrder(a[0]).localeCompare(segmentOrder(b[0])) || (a[0] < b[0] ? -1 : 1))) {
+    childItems.push(...walkTrie(child, ctx, [...segments, seg]));
+  }
+  const opItems = cur.ops
+    .slice()
+    .sort((a, b) => a.method.localeCompare(b.method) || (a.path < b.path ? -1 : 1))
+    .map((op) => {
+      const segs = op.path.split('/').filter(Boolean);
+      const tailStart = segs.findIndex((s, i) => segments[i] !== s);
+      const tail = tailStart >= 0 ? segs.slice(Math.max(tailStart, segments.length)) : [];
+      const label = tail.length > 0 ? `\`${op.method} ${tail.join('/')}\`` : `\`${op.method} ${segs.join('/')}\``;
+      return {
+        type: 'doc',
+        id: `${op.base}${op.id}`,
+        label,
+        className: `api-method ${op.method.toLowerCase()}`,
+      };
+    });
+  const items = [...childItems, ...opItems];
+  // Root with no prefix: a bare item list (grouped under the unit category by
+  // the caller).
+  if (segments.length === 0) return items;
+  if (items.length === 0) return [];
+  // A single flattened leaf needs no category of its own.
+  if (items.length === 1 && items[0].type === 'doc') return [items[0]];
+  const firstDoc = ctx.pageId || findFirstDoc(items);
+  return [{
+    type: 'category',
+    label: segments.join('/'),
+    ...(firstDoc ? { link: { type: 'doc', id: firstDoc } } : {}),
+    items,
+    collapsed: true,
+  }];
+}
+
+/** First doc id in the subtree - categories link to a representative page so
+ * Docusaurus can auto-open them. */
+function findFirstDoc(items) {
+  for (const it of items) {
+    if (it.type === 'doc') return it.id;
+    const sub = it.items && findFirstDoc(it.items);
+    if (sub) return sub;
+  }
+  return null;
+}
+
+/** Sort parameterized segments ({id}) after literals for readability. */
+function segmentOrder(seg) {
+  return seg.startsWith('{') ? `~~${seg}` : seg;
 }
 
 /** Normalize every operation to one uniform sidebar label: `METHOD /path`.
