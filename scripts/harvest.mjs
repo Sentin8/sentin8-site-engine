@@ -202,8 +202,8 @@ console.log(`harvest: ${harvested} reference pages written to docs/reference/`);
 // static api.md page.
 try {
   const { execFileSync } = await import('node:child_process');
-  const engineDir = path.dirname(fileURLToPath(import.meta.resolve('../src/index.mjs')));
-  execFileSync(process.execPath, [path.join(engineDir, 'scripts', 'openapi-api-docs.mjs'), siteDir], { stdio: 'inherit' });
+  const engineScriptsDir = path.dirname(fileURLToPath(import.meta.url));
+  execFileSync(process.execPath, [path.join(engineScriptsDir, 'openapi-api-docs.mjs'), siteDir], { stdio: 'inherit' });
   const configJson = path.join(siteDir, 'openapi', 'config.json');
   if (existsSync(configJson)) {
     for (const slug of Object.keys(JSON.parse(readFileSync(configJson, 'utf8')))) {
