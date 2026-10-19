@@ -199,6 +199,10 @@ Copyright &copy;  ${new Date().getFullYear()} <a href="https://www.logicallymagi
             sidebarPath: './sidebars.js',
             editUrl: `https://github.com/${site.org}/${site.vertical}-site/edit/main/`,
             showLastUpdateTime: false,
+            // API reference pages hydrate the openapi theme's store-backed
+            // explorer: route them through @theme/ApiItem so the redux
+            // Provider (ApiItem) wraps every /docs/api/** page.
+            docItemComponent: '@theme/ApiItem',
           },
           blog: false,
           sitemap: {},
