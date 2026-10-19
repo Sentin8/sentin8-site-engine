@@ -215,7 +215,14 @@ Copyright &copy;  ${new Date().getFullYear()} <a href="https://www.logicallymagi
                 items
                   .filter((item) => !(item.id || '').startsWith('api/'))
                   .map((item) => (item.items ? { ...item, items: dropApi(item.items) } : item))
-                  .filter((item) => item.type !== 'category' || (item.items || []).length > 0);
+                  .filter(
+                    (item) =>
+                      item.type !== 'category' ||
+                      (item.items || []).length > 0 ||
+                      // category-index pages: Docusaurus links the index doc
+                      // into the category and legitimately leaves items empty
+                      item.link !== undefined,
+                  );
               return dropApi(defaultSidebarItemsGenerator({ ...args }));
             },
           },
