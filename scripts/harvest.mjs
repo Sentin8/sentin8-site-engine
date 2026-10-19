@@ -195,6 +195,30 @@ if (failures > 0) {
 }
 console.log(`harvest: ${harvested} reference pages written to docs/reference/`);
 
+// Interactive OpenAPI reference (OQ-4 upgrade): stage the unit specs + the
+// per-unit plugin config sidecar, then run the plugin's generator per unit —
+// its MDX lands under `api/{slug}/` and merges into the docs sidebar via the
+// engine sidebars factory. Best-effort: a failing unit degrades to the
+// static api.md page.
+try {
+  const { execFileSync } = await import('node:child_process');
+  const engineDir = path.dirname(fileURLToPath(import.meta.resolve('../src/index.mjs')));
+  execFileSync(process.execPath, [path.join(engineDir, 'scripts', 'openapi-api-docs.mjs'), siteDir], { stdio: 'inherit' });
+  const configJson = path.join(siteDir, 'openapi', 'config.json');
+  if (existsSync(configJson)) {
+    for (const slug of Object.keys(JSON.parse(readFileSync(configJson, 'utf8')))) {
+      try {
+        execFileSync('npx', ['docusaurus', 'gen-api-docs', slug], { cwd: siteDir, stdio: ['ignore', 'ignore', 'inherit'] });
+        console.log(`harvest: gen-api-docs: ${slug}`);
+      } catch (err) {
+        console.warn(`harvest: gen-api-docs ${slug} failed (${err.status ?? err.message}) — the unit keeps the static api.md only`);
+      }
+    }
+  }
+} catch (err) {
+  console.warn(`harvest: interactive API stage skipped (${err.message})`);
+}
+
 /* ---------------------------------------------------------------- */
 
 async function resolveFile(repo, file, org) {
