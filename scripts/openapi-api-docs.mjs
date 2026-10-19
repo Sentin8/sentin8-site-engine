@@ -26,12 +26,23 @@
 // The interactive layer is the sole API reference (the legacy static
 // api.md fallback is retired); the engine's sidebar factory merges the
 // generated per-unit sidebar slices.
+//
+// Schema guard (OAPEC §2 rule 10, sites design OQ-4): a 2xx-JSON response
+// carrying an EMPTY schema is a service-side annotation defect (the utoipa
+// `serde_json::Value` body placeholder) - the site would render "OK" with
+// no schema. Staging refuses such a spec and lists the offending
+// (method, path) pairs, so sites never re-ship schema-less JSON responses.
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
-await main();
+// CLI entry point only: importing the module (tests, harvest.mjs re-using the
+// exported helpers) never triggers staging.
+const ENTRY_POINT = process.argv[1] ? realpathSync(process.argv[1]) : '';
+const THIS_MODULE = fileURLToPath(import.meta.url);
+if (ENTRY_POINT === THIS_MODULE) await main();
 
 async function main() {
   const arg = process.argv[2] || process.cwd();
@@ -61,6 +72,14 @@ async function main() {
     if (!slug || !repo) continue;
     const spec = await resolveSpec(repo, org);
     if (!spec) continue;
+
+    const broken = findEmptySchemaResponses(spec);
+    if (broken.length > 0) {
+      console.error(`openapi-api-docs: ${repo}: ${broken.length} operation(s) with an empty-schema JSON 2xx response (service-side utoipa annotation defect - typed DTOs required, OAPEC §2 rule 10):`);
+      for (const b of broken.slice(0, 20)) console.error(`  ${b.verb} ${b.route} -> ${b.code}`);
+      if (broken.length > 20) console.error(`  ...and ${broken.length - 20} more`);
+      process.exit(1);
+    }
 
     const normalized = normalizeSidebarLabels(spec);
     writeFileSync(path.join(specsDir, `${slug}-spec.json`), JSON.stringify(normalized, null, 2) + '\n');
@@ -349,6 +368,56 @@ function readableDescription(op, verb, routePath) {
 /** Escape a literal path for RegExp use. */
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** The schema guard (OAPEC §2 rule 10): every JSON media-type response in
+ * the 2xx family must carry a usable schema. utoipa emits an empty schema
+ * `{}` for the `serde_json::Value` body placeholder; docusaurus-openapi-docs
+ * then renders the operation with no schema at all (the "OK"-only page).
+ *
+ * A schema counts as EMPTY when it is missing, not an object, or an object
+ * that declares nothing - no properties, no compound keywords (allOf/anyOf/
+ * oneOf), no $ref, and no additionalProperties. Free-form-by-contract
+ * responses declare `additionalProperties`, so they pass.
+ *
+ * @param {object} spec - the parsed OpenAPI spec
+ * @returns {Array<{verb: string, route: string, code: string}>} the
+ *   offending operations (empty array = green)
+ */
+export function findEmptySchemaResponses(spec) {
+  const paths = spec?.paths;
+  if (!paths || typeof paths !== 'object') return [];
+  const METHOD_RE = /^[A-Za-z]+$/;
+  const SCHEMA_SHAPE_KEYWORDS = ['properties', 'allOf', 'anyOf', 'oneOf', '$ref', 'additionalProperties', 'items', 'enum'];
+  const isUsableSchema = (schema) =>
+    Boolean(
+      schema &&
+        typeof schema === 'object' &&
+        SCHEMA_SHAPE_KEYWORDS.some((k) => k in schema),
+    );
+  const violations = [];
+  for (const [routePath, pathItem] of Object.entries(paths)) {
+    if (!pathItem || typeof pathItem !== 'object') continue;
+    for (const [method, op] of Object.entries(pathItem)) {
+      if (!METHOD_RE.test(method) || !op || typeof op !== 'object') continue;
+      for (const [code, response] of Object.entries(op.responses ?? {})) {
+        if (!/^2\d\d$/.test(code)) continue;
+        const content = response?.content;
+        if (!content || typeof content !== 'object') continue;
+        for (const [mediaType, mediaObj] of Object.entries(content)) {
+          if (!mediaType.startsWith('application/json')) continue;
+          const schema = mediaObj?.schema;
+          // A media type listed with no schema at all is the same defect as
+          // the empty `{}`: the renderer cannot show anything for it.
+          if (!isUsableSchema(schema)) {
+            violations.push({ verb: method.toUpperCase(), route: routePath, code });
+            break;
+          }
+        }
+      }
+    }
+  }
+  return violations;
 }
 
 /** Resolve the unit's OpenAPI spec: local sibling repo first (dev loop +
