@@ -8,21 +8,23 @@
 // (design/sentin8-websites-design.md §2, OQ-4 interactive resolution).
 //
 // The plugin generates per-operation doc pages (interactive response
-// schemas, request samples) from the harvested `docs/reference/{unit}/api`
-// sources. It runs as a second-pass generator AFTER the doc harvester:
+// schemas, request samples) from the unit's OpenAPI spec. It runs as a
+// second-pass generator AFTER the doc harvester:
 //
 //   1. `harvest.mjs`   — pulls specs + prose into docs/reference/{unit}/
 //   2. `openapi-api-docs.mjs` — for every unit carrying docs/openapi.json,
-//      copies the spec to `openapi/{slug}-spec.json` and appends the
-//      plugin's per-unit entry to `openapi/config.yaml` (the id/category
-//      sidecar the site config feeds to `createConfig`-style docusaurus
-//      presets).
+//      copies the spec to `openapi/{slug}-spec.json` and writes the plugin's
+//      per-unit options into the `openapi/config.json` sidecar (a keyed
+//      object — the plugin validates `config` as an object of entries, not
+//      an array).
 //   3. `docusaurus.config.js` mounts the plugin with that config; the
-//      generated pages live under `/api/{slug}` with per-operation routes.
+//      generated pages live under `/docs/api/{slug}/**` (inside the docs
+//      content dir — sidebars resolve doc ids from the docs root) with
+//      per-operation routes.
 //
 // The static `api.md` pages stay: they are the search-indexable,
-// typographic voice; the plugin pages add the interactive layer at
-// `/api/...` and link back to the static page (and vice versa).
+// typographic voice; the plugin pages add the interactive layer and the
+// engine's sidebar factory merges the generated per-unit sidebar slices.
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import path from 'node:path';

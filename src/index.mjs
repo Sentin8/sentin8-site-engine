@@ -272,11 +272,12 @@ function path_to_json5() {
  *
  * `scripts/openapi-api-docs.mjs` (run at harvest, before the Docusaurus
  * build) copies every unit spec to `openapi/{slug}-spec.json` and writes the
- * per-unit options array `openapi/config.json`. This factory turns that
- * sidecar into one `docusaurus-plugin-openapi-docs` instance — the plugin
- * accepts an ARRAY of configs, so a single plugin covers every unit —
- * generating pages under /api/{slug}/** with per-tag sidebar groups. A
- * missing sidecar (brand-new site pre-harvest, or no API-carrying units)
+ * per-unit options into the `openapi/config.json` sidecar (a keyed object —
+ * the plugin validates `config` as an object of entries, not an array). This
+ * factory turns that sidecar into one `docusaurus-plugin-openapi-docs`
+ * instance covering every unit — pages generate under docs/api/{slug}/**
+ * (inside the docs content dir) with per-tag sidebar groups. A missing
+ * sidecar (brand-new site pre-harvest, or no API-carrying units)
  * contributes nothing: the static api.md pages still render.
  *
  * The sidecar is JSON (not YAML) on purpose: the site config factory is
