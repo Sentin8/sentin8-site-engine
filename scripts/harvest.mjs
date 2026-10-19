@@ -184,7 +184,7 @@ if (failures > 0) {
 console.log(`harvest: ${harvested} reference pages written to docs/reference/`);
 
 // Interactive OpenAPI reference (OQ-4 upgrade): stage the unit specs + the
-// per-unit plugin config sidecar, then run the plugin's generator per unit —
+// per-unit plugin config sidecar, then run the plugin's generator per unit -
 // its MDX lands under `api/{slug}/` and merges into the docs sidebar via the
 // engine sidebars factory. This is the ONLY API reference rendering: the
 // previous static api.md fallback is retired (target state has no

@@ -3,7 +3,7 @@
 // files. Webpack's CommonJsExportsParserPlugin bails out of export tracking ("this
 // is used directly"), which leaves `providedExports = ['__esModule']` and makes
 // webpack emit `__webpack_require__.r()` on these modules while keeping their
-// `exports.default = ...` bodies verbatim — those bodies then throw
+// `exports.default = ...` bodies verbatim - those bodies then throw
 // `ReferenceError: exports is not defined` in the browser (sentin8-site-engine
 // design §5, webpack interop defect).
 //
