@@ -61,8 +61,8 @@ async function main() {
 
     writeFileSync(path.join(specsDir, `${slug}-spec.json`), JSON.stringify(spec, null, 2) + '\n');
     entries[slug] = {
-      specPath: `openapi/${slug}-spec.json`,
-      outputDir: `api/${slug}`,
+      specPath: `openapi/${slug}-spec.json`, // site-dir-relative (the plugin resolves against siteDir)
+      outputDir: `docs/api/${slug}`,
       sidebarOptions: {
         groupPathsBy: 'tag',
         categoryLinkSource: 'info',
