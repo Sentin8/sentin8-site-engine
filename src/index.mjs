@@ -228,13 +228,18 @@ export function buildOpenApiPlugins(site) {
   if (!entries || typeof entries !== 'object') return [];
   const keys = Object.keys(entries);
   if (keys.length === 0) return [];
+  // NOTE the WRAPPER array: makeSiteConfig spreads the return value into the
+  // plugins list (`...buildOpenApiPlugins(site)`), so a bare 2-tuple would
+  // flatten into a string + a bare object (both invalid plugin entries).
   return [
-    'docusaurus-plugin-openapi-docs',
-    {
-      id: 'openapi-docs',
-      docsPluginId: 'default',
-      config: entries,
-    },
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'openapi-docs',
+        docsPluginId: 'default',
+        config: entries,
+      },
+    ],
   ];
 }
 
