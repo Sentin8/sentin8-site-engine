@@ -9,7 +9,10 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { VERTICAL_ACCENTS } from './theme-vars.mjs';
+
+const __engineDir = path.dirname(fileURLToPath(import.meta.url));
 
 const ALL_SITES = [
   { key: 'sentin8', name: 'Sentin8' },
@@ -21,16 +24,51 @@ const ALL_SITES = [
   { key: 'email8', name: 'Email8' },
 ];
 
-/** webpack module-concatenation fix for the openapi-docs plugin/theme
- * (OQ-4): `Cannot get final name for export '__esModule'` — webpack 5's
- * ConcatenatedModule cannot model a CJS module whose `__esModule` marker is
- * created via Object.defineProperty. Disabling concatenation for the site
- * build keeps the plugin/theme interop intact without dropping the
- * interactive API layer. */
-const webpackConcatFixPlugin = () => ({
-  name: 'sentin8-site-engine-openapi-concat-fix',
+/** webpack interop fix for the openapi-docs plugin/theme libs. The compiled
+ * `lib/**` files are TypeScript-CJS output (`exports.default = …`,
+ * `var __createBinding = (this && this.__createBinding) || …`). Two webpack
+ * behaviors combine into a browser crash (design §5):
+ *
+ *  1. webpack's CommonJsExportsParserPlugin bails out of export tracking on the
+ *     `this`-guarded helper assignments, leaving `providedExports = ['__esModule']`
+ *     — so webpack believes the module exports a namespace and emits
+ *     `__webpack_require__.r()` on it while keeping the `exports.default = …`
+ *     body verbatim; the free `exports` identifier then throws
+ *     `ReferenceError: exports is not defined` in the browser.
+ *  2. On the client build, @docusaurus/babel rewrites the helper guards into
+ *     `import _x from "…/@babel/runtime/helpers/esm/…"` — a real ESM import
+ *     token inside the CJS module, which forces the ESM classification
+ *     (mechanism 1) even when the source itself was already CJS.
+ *
+ * Two engine-injected loaders keep these files pure CommonJS end to end:
+ *  - `tsHelperGuardStrip` (pre): strips the `this && this.__x` helper guards so
+ *    webpack's export tracking does not bail out;
+ *  - `babelEsmHelperImportStrip` (post): rewrites the babel-injected
+ *    `helpers/esm` imports to their CommonJS counterparts, removing the ESM
+ *    tokens from the client build.
+ * Concatenation is additionally disabled (the openapi-docs CJS interop trips
+ * webpack 5's ConcatenatedModule — OQ-4 — and the interactive layer is only
+ * served with it off). */
+const tsHelperGuardStrip = path.resolve(__engineDir, 'ts-helper-guard-strip-loader.cjs');
+const babelEsmHelperImportStrip = path.resolve(__engineDir, 'babel-esm-helper-import-strip-loader.cjs');
+
+const webpackInteropFixPlugin = () => ({
+  name: 'sentin8-site-engine-openapi-webpack-interop-fix',
   configureWebpack() {
-    return { optimization: { concatenateModules: false } };
+    // docusaurus-(theme|plugin)-openapi-docs compiled lib output: TypeScript-CJS
+    // JS files (theme components + markdown/schema generators).
+    const openapiLibJs = new RegExp(
+      'docusaurus-(theme|plugin)-openapi-docs/lib/.*\\.js$',
+    );
+    return {
+      module: {
+        rules: [
+          { test: openapiLibJs, loader: tsHelperGuardStrip, enforce: 'pre' },
+          { test: openapiLibJs, loader: babelEsmHelperImportStrip, enforce: 'post' },
+        ],
+      },
+      optimization: { concatenateModules: false },
+    };
   },
 });
 
@@ -96,12 +134,9 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
       // request/response schema trees; the static typographic `api.md`
       // stays for search + the dossier voice.
       ...buildOpenApiPlugins(site),
-      // webpack fix (OQ-4): the openapi-docs plugin + theme CJS libs trip
-      // webpack 5's ConcatenatedModule (`Cannot get final name for export
-      // '__esModule'` — the __esModule marker is created via
-      // Object.defineProperty, which concatenation cannot model); disable
-      // concatenation instead of giving up the interactive layer.
-      webpackConcatFixPlugin,
+      // webpack interop fix (OQ-4): keep the openapi-docs plugin/theme CJS
+      // libs pure CommonJS end to end — see the loader doc block above.
+      webpackInteropFixPlugin,
     ],
     themeConfig: {
       mermaid: { theme: { dark: 'dark', light: 'default' } },
