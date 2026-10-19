@@ -118,13 +118,47 @@ export function normalizeSidebarLabels(spec) {
         const prose = summary
           .replace(new RegExp(`^\\s*\`?${verb}\\s+${escapeRegExp(routePath)}\`?\\s*([--:\\u2014]\\s*)?`), '')
           .trim();
-        const existing = typeof op.description === 'string' ? op.description.trim() : '';
-        if (prose) op.description = prose === existing ? existing : [existing, prose].filter(Boolean).join('\n\n');
+        const existing = readableDescription(op, verb, routePath);
+        if (prose) {
+          op.description = prose === existing ? existing : [existing, prose].filter(Boolean).join('\n\n');
+        } else if (existing) {
+          op.description = existing;
+        }
+      } else {
+        // No authored summary: the plugin would otherwise copy the label (summary
+        // || operationId fallback) into the description - a route path is not
+        // documentation. Synthesize a readable sentence for the bare pages.
+        op.description = readableDescription(op, verb, routePath);
       }
       op.summary = label;
     }
   }
   return spec;
+}
+
+/** The page description for an operation: author prose when present, or a
+ * readable sentence synthesized from the operationId. Handlers without
+ * summaries/descriptions otherwise render pages whose only "documentation"
+ * is the route path itself.
+ *
+ * The synthesis stays factual: it names the action over the operation name's
+ * words ("add-preference" -> "Add preference.", "policy_create_set" ->
+ * "Creates a policy set.") - never invented behavior. A description that
+ * merely echoes the label or route path is treated as absent. */
+function readableDescription(op, verb, routePath) {
+  const existing = typeof op.description === 'string' ? op.description.trim() : '';
+  const bare = existing.replace(/[`]/g, '').replace(/\s+/g, ' ');
+  const labelish = `${verb} ${routePath}`;
+  if (existing && bare !== labelish && bare !== routePath) return existing;
+  const source = typeof op.operationId === 'string' && op.operationId.trim() ? op.operationId.trim() : '';
+  if (!source) return existing;
+  const words = source
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0) return existing;
+  return `${words[0][0].toUpperCase()}${words[0].slice(1).toLowerCase()} ${words.slice(1).join(' ').toLowerCase()}.`;
 }
 
 /** Escape a literal path for RegExp use. */
