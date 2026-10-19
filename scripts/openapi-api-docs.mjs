@@ -116,7 +116,7 @@ export function normalizeSidebarLabels(spec) {
         // separators so the body does not repeat what the label already
         // states, then merge it with any existing description.
         const prose = summary
-          .replace(new RegExp(`^\\s*\`?${verb}\\s+${escapeRegExp(routePath)}\`?\\s*([-—:\\u2014]\\s*)?`), '')
+          .replace(new RegExp(`^\\s*\`?${verb}\\s+${escapeRegExp(routePath)}\`?\\s*([--:\\u2014]\\s*)?`), '')
           .trim();
         const existing = typeof op.description === 'string' ? op.description.trim() : '';
         if (prose) op.description = prose === existing ? existing : [existing, prose].filter(Boolean).join('\n\n');
