@@ -100,10 +100,23 @@ export function writeHierarchicalSidebar(siteDir, slug) {
   if (ops.length === 0) return 0;
   const root = buildPathTrie(ops);
   const rootItems = trieToSidebar(root, { pageId: null });
+  // The unit's intro doc (bank-8-ledger.info.mdx -> unit id) is the anchor of
+  // the category: it is an ITEM (not just the category link) because plugin
+  // components like useCurrentSidebarCategory() require the doc to sit
+  // inside the sidebar category chain during static rendering.
+  const infoId = readInfoDocId(unitDir);
+  if (infoId) {
+    rootItems.unshift({
+      type: 'doc',
+      id: `api/${slug}/${infoId}`,
+      label: 'Overview',
+      className: 'api-overview',
+    });
+  }
   // The whole tree rides in one collapsible category named for the unit slug
   // (its link points at the unit's intro doc so opening the menu lands
   // somewhere useful).
-  const firstDoc = findFirstDoc(rootItems);
+  const firstDoc = infoId ? `api/${slug}/${infoId}` : findFirstDoc(rootItems.slice(1));
   const unitCategory = {
     type: 'category',
     label: slug,
@@ -143,6 +156,17 @@ function parseFrontmatter(text) {
   const id = /^id:\s*["'`]?([^"'`\n]+?)["'`]?\s*$/m.exec(m[1]);
   const label = /^sidebar_label:\s*(.*)$/m.exec(m[1]);
   return { id: id && id[1].trim(), label: label && label[1].trim() };
+}
+
+/** The unit's intro doc id: the plugin generates `{unit}.info.mdx` next to
+ * the operation pages - its id is the file basename without the extension. */
+function readInfoDocId(unitDir) {
+  try {
+    const info = readdirSync(unitDir).find((fn) => fn.endsWith('.info.mdx'));
+    return info ? info.replace(/\.info\.mdx$/, '') : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Insert one operation {method, path} into the trie keyed by path segments. */
