@@ -250,6 +250,34 @@ Copyright &copy;  ${new Date().getFullYear()} <a href="https://www.logicallymagi
     scripts: [],
     headTags: [
       { tagName: 'meta', attributes: { name: 'referrer', content: 'no-referrer' } },
+      // Social-share metadata (link previews): WhatsApp/LinkedIn/X scrape
+      // OpenGraph + twitter:card tags on the FIRST HTML response - without
+      // them a shared link renders bare text, no image, no description
+      // (owner finding: "when we share the sites on whatsapp and linkedin,
+      // it should show the icon as image"). The card is a 1200x630 PNG at
+      // static/img/og-card.png (Social scrapers never render SVG; generate
+      // it with `scripts/og-images.mjs <siteDir>` from the vertical's logo +
+      // site.json - regenerable, single source of truth). URLs must be
+      // ABSOLUTE (scrapers do not resolve relative image URLs).
+      { tagName: 'meta', attributes: { property: 'og:type', content: 'website' } },
+      { tagName: 'meta', attributes: { property: 'og:site_name', content: site.name || site.vertical } },
+      { tagName: 'meta', attributes: { property: 'og:title', content: site.name || site.vertical } },
+      { tagName: 'meta', attributes: { property: 'og:description', content: site.tagline ?? '' } },
+      { tagName: 'meta', attributes: { property: 'og:url', content: `https://${domain}/` } },
+      {
+        tagName: 'meta',
+        attributes: {
+          property: 'og:image',
+          content: `https://${domain}/img/og-card.png`,
+        },
+      },
+      { tagName: 'meta', attributes: { property: 'og:image:width', content: '1200' } },
+      { tagName: 'meta', attributes: { property: 'og:image:height', content: '630' } },
+      { tagName: 'meta', attributes: { property: 'og:image:alt', content: `${site.name || site.vertical} logo` } },
+      { tagName: 'meta', attributes: { name: 'twitter:card', content: 'summary_large_image' } },
+      { tagName: 'meta', attributes: { name: 'twitter:title', content: site.name || site.vertical } },
+      { tagName: 'meta', attributes: { name: 'twitter:description', content: site.tagline ?? '' } },
+      { tagName: 'meta', attributes: { name: 'twitter:image', content: `https://${domain}/img/og-card.png` } },
       // Quicksand - the default font family for all sites (owner decision
       // 2026-10-16). Weights 300-700; the theme maps everything to <=700.
       { tagName: 'link', attributes: { rel: 'preconnect', href: 'https://fonts.googleapis.com' } },
