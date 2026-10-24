@@ -1,4 +1,4 @@
-# README.md: Sentin8:Site-Engine - Shared Website Engine
+# Sentin8:Site-Engine - Shared Website Engine
 
 > The shared Docusaurus engine behind `sentin8.dev` and every
 > `{vertical}.dev` site. Design of record:
