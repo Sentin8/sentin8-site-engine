@@ -124,6 +124,27 @@ for (const unit of units) {
   // render time so the sites stay consistent without touching the sources.
   const normalizeTypography = (s) => s.replaceAll(' \u2014 ', ' - ').replaceAll('\u2014', '-');
 
+  // Badge-block stripping (site rendering rule): source READMEs open with
+  // shields.io badge lines whose LINK TARGETS are repo-relative
+  // (`../LICENSE`) or repo-doc routes (`/docs/services/{slug}`) - both
+  // resolve to broken links inside the harvested site pages (the sites
+  // render their own footer/nav license links, so the badges carry no
+  // information the site lacks). The badge BLOCK is the wrapped lines
+  // between the H1 and the next blank line when that block starts with a
+  // badge image; everything after it is kept verbatim.
+  const stripBadgeLines = (s) => {
+    const lines = s.split('\n');
+    const startsBadge = (ln) => ln.trim().startsWith('[![');
+    // Find the H1 (first line beginning '# '); the badge block follows it.
+    let h1 = lines.findIndex((ln) => ln.startsWith('# '));
+    if (h1 === -1) return s;
+    let i = h1 + 1;
+    if (i >= lines.length || !startsBadge(lines[i])) return s;
+    // Strip through the first blank line (the wrapped badge block's end).
+    while (i < lines.length && lines[i].trim() !== '') i += 1;
+    return lines.slice(0, h1 + 1).concat(lines.slice(i)).join('\n');
+  };
+
   const writeFileWithFrontmatter = (dir, file, outName, label, content) => {
     const fm = [
       '---',
@@ -138,7 +159,7 @@ for (const unit of units) {
       '---',
       '',
     ].join('\n');
-    writeFileSync(path.join(dir, `${outName}.md`), fm + normalizeTypography(content) + '\n');
+    writeFileSync(path.join(dir, `${outName}.md`), fm + normalizeTypography(stripBadgeLines(content)) + '\n');
   };
 
     // Resolve all sources up front so indexes list only what exists.
