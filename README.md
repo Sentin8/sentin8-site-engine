@@ -166,4 +166,4 @@ the same ring discipline as the SDK's `sdk-vX.Y.Z` pins.
 
 ---
 
-**Design attribution:** Sentin8:Site-Engine and its underlying concepts were designed by Hamid Jahanzad <Hamid@Jahanzad.com>.
+**Architecture & Design:** Sentin8:Site-Engine and its underlying concepts were designed by [Hamid Jahanzad](https://www.linkedin.com/in/hamidjahanzad/).
