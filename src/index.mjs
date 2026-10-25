@@ -17,7 +17,10 @@ const __engineDir = path.dirname(fileURLToPath(import.meta.url));
 const ALL_SITES = [
   { key: 'sentin8', name: 'Sentin8' },
   { key: 'bank8', name: 'Bank8' },
-  { key: 'hotel8', name: 'Hotel8' },
+  // Built and deployed like every site; familyHidden only removes it from
+  // the SIBLING sites' navbar dropdown + footer (family-visibility rule,
+  // design §4.6) - hotel8.dev self-lists normally (design WEB-16).
+  { key: 'hotel8', name: 'Hotel8', familyHidden: true },
   { key: 'exchange8', name: 'Exchange8' },
   { key: 'trade8', name: 'Trade8' },
   { key: 'bill8', name: 'Bill8' },
@@ -80,6 +83,13 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
   const accent = site.accent || VERTICAL_ACCENTS[site.vertical] || '#D4AF37';
   const domain = site.domain || `${site.vertical}.dev`;
 
+  // Family-visibility rule (design §4.6): a familyHidden roster entry is
+  // listed only on its own site - the navbar domain dropdown and the footer
+  // "All sites" column render the filtered roster, not the full one.
+  const familySites = ALL_SITES.filter(
+    (s) => s.key === site.vertical || !s.familyHidden,
+  );
+
   const navbarItems = [];
   if (site.units?.length) {
     navbarItems.push({
@@ -109,7 +119,7 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
     { to: '/docs/security', label: 'Security', position: 'left' },
     { to: '/docs/developers', label: 'Developers', position: 'left' },
     { to: '/docs/samples', label: 'Samples', position: 'left' },
-    { type: 'dropdown', label: `${domain}`, position: 'right', items: ALL_SITES.map((s) => ({ label: s.name, href: `https://${s.key}.dev/` })) },
+    { type: 'dropdown', label: `${domain}`, position: 'right', items: familySites.map((s) => ({ label: s.name, href: `https://${s.key}.dev/` })) },
     { href: `https://github.com/${site.org}`, label: 'GitHub', position: 'right' },
   );
 
@@ -161,7 +171,7 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
           },
           {
             title: 'All sites',
-            items: ALL_SITES.map((s) => ({ label: s.name, href: `https://${s.key}.dev/` })),
+            items: familySites.map((s) => ({ label: s.name, href: `https://${s.key}.dev/` })),
           },
         ],
         copyright: `<svg width="100" version="1.1" viewBox="0 0 50.516 19.401" xmlns="http://www.w3.org/2000/svg">

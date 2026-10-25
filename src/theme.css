@@ -510,3 +510,54 @@ html[data-theme='light'] .s8-map-item {
   margin: 0 auto;
   padding: 0 1rem 4rem;
 }
+
+/* Horizontal footer (design WEB §4.6): Infima stacks the multi-column
+ * footer vertically (each `.footer__col` a full-width block, its
+ * `.footer__items` a stacked <ul>). The engine re-lays it as one
+ * horizontal strip: columns flow left-to-right, items render inline
+ * within each group, and the strip wraps on narrow viewports. The
+ * copyright line stays centered beneath the strip. */
+.footer {
+  padding: 2.5rem 0 1.5rem;
+}
+
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 4rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.footer__col {
+  margin-bottom: 0;
+}
+
+.footer__title {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ifm-color-content-secondary, #b3b1ad);
+}
+
+.footer__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+}
+
+.footer__link-item {
+  display: inline-block;
+  width: auto;
+  font-size: 0.9rem;
+}
+
+/* Narrow screens: the two groups drop onto separate lines but the items
+ * inside each group keep their inline flow (never re-stack). */
+@media (max-width: 960px) {
+  .footer__links {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
