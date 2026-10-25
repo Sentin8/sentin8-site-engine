@@ -126,26 +126,67 @@ for (const unit of units) {
 
   // Badge-block stripping (site rendering rule): source READMEs open with
   // shields.io badge lines whose LINK TARGETS are repo-relative
-  // (`../LICENSE`) or repo-doc routes (`/docs/services/{slug}`) - both
-  // resolve to broken links inside the harvested site pages (the sites
-  // render their own footer/nav license links, so the badges carry no
-  // information the site lacks). The badge BLOCK is the wrapped lines
-  // between the H1 and the next blank line when that block starts with a
-  // badge image; everything after it is kept verbatim.
-  const stripBadgeLines = (s) => {
+  // (`../../LICENSE`, `../LICENSE`) or repo-doc routes
+  // (`/docs/services/{slug}`) - both resolve to broken links inside the
+  // harvested site pages (the sites render their own footer/nav license
+  // links, so the badges carry no information the site lacks). Layouts
+  // shipped so far: badges directly after the H1, badges after H1 + blank
+  // line, and badges after a quote-lead paragraph. The strip treats the
+  // badge block as a contiguous RUN: a badge-image line plus the
+  // continuation line of a hard-wrapped badge link (URL and target split
+  // across lines), ending at the first non-badge content line. The window
+  // search skips blank lines and quote-lead prose between the H1 and the
+  // first badge line. Residual repo-relative LICENSE link targets anywhere
+  // in the body are re-pointed to the repo's GitHub URL - defense-in-depth
+  // against future layouts.
+  const stripBadgeLines = (s, { org, repo } = {}) => {
     const lines = s.split('\n');
     const startsBadge = (ln) => ln.trim().startsWith('[![');
-    // Find the H1 (first line beginning '# '); the badge block follows it.
+    const isQuote = (ln) => ln.trimStart().startsWith('> ');
+    // Find the H1 (first line beginning '# ').
     let h1 = lines.findIndex((ln) => ln.startsWith('# '));
     if (h1 === -1) return s;
-    let i = h1 + 1;
-    if (i >= lines.length || !startsBadge(lines[i])) return s;
-    // Strip through the first blank line (the wrapped badge block's end).
-    while (i < lines.length && lines[i].trim() !== '') i += 1;
-    return lines.slice(0, h1 + 1).concat(lines.slice(i)).join('\n');
+    // Search window: the first badge line after the H1 (skipping blanks and
+    // quote-lead prose).
+    let start = -1;
+    for (let i = h1 + 1; i < lines.length && i < h1 + 24; i += 1) {
+      if (startsBadge(lines[i])) { start = i; break; }
+      // Stop the search at real content: a heading or non-quoted prose.
+      if (lines[i].startsWith('# ') || (lines[i].trim() !== '' && !isQuote(lines[i]))) break;
+    }
+    if (start === -1) return s;
+    // The run: consecutive badge lines, where a badge line followed by a
+    // line starting with `)](` makes both part of one wrapped badge link -
+    // the continuation line belongs to the run too.
+    let end = start;
+    while (end < lines.length) {
+      if (startsBadge(lines[end])) { end += 1; continue; }
+      if (end > start && lines[end].trimStart().startsWith(')](') ) { end += 1; continue; }
+      break;
+    }
+    let out = lines.slice(0, start).concat(lines.slice(end));
+    // Repair the blank-line seam the strip can leave (badge block was the
+    // whole paragraph between two blanks).
+    while (out[start - 1] !== undefined && out[start] !== undefined && out[start - 1].trim() === '' && out[start].trim() === '') out.splice(start, 1);
+    // Defense-in-depth: any repo-relative LICENSE link target that leaked
+    // past the badge strip re-points to the repo on GitHub (same content,
+    // no broken relative route).
+    const ghBase = org && repo ? `https://github.com/${org}/${repo.replace(new RegExp(`^${org}/`), '')}/blob/main/LICENSE` : null;
+    if (ghBase) {
+      out = out.map((ln) =>
+        ln
+          .replace(/\]\((?:\.\.\/)+(?:LICENSE)\)/g, `](${ghBase})`)
+          .replace(/\]\(LICENSE\)/g, `](${ghBase})`),
+      );
+    }
+    return out.join('\n');
   };
 
-  const writeFileWithFrontmatter = (dir, file, outName, label, content) => {
+  const writeFileWithFrontmatter = (dir, file, outName, label, content, { org: unitOrg, repo: unitRepo } = {}) => {
+    // Repair origin for leaked license link targets: prefer the unit's own
+    // org/repo, fall back to the harvest-level org/repo pair.
+    const rOrg = unitOrg || org;
+    const rRepo = unitRepo || repo;
     const fm = [
       '---',
       `title: ${JSON.stringify(`${unit.name || slug} - ${label}`)}`,
@@ -155,11 +196,11 @@ for (const unit of units) {
       // angle brackets in maintainer docs from being parsed as JSX.
       'mdx:',
       '  format: md',
-      `custom_edit_url: https://github.com/${org}/${repo}/edit/main/${file}`,
+      `custom_edit_url: https://github.com/${rOrg}/${rRepo}/edit/main/${file}`,
       '---',
       '',
     ].join('\n');
-    writeFileSync(path.join(dir, `${outName}.md`), fm + normalizeTypography(stripBadgeLines(content)) + '\n');
+    writeFileSync(path.join(dir, `${outName}.md`), fm + normalizeTypography(stripBadgeLines(content, { org: rOrg, repo: rRepo })) + '\n');
   };
 
     // Resolve all sources up front so indexes list only what exists.
