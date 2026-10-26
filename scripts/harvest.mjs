@@ -23,7 +23,7 @@
 //
 // Usage: node harvest.mjs [site-dir]   (default: CWD)
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import process from 'node:process';
@@ -31,6 +31,90 @@ import process from 'node:process';
 const DEFAULT_BRANCH = 'main';
 const SIBLING_DIRS = ['../../', '../', './'];
 
+// Repair origin for leaked license link targets (WEB-18 defense-in-depth,
+// unconditional per WEB-19): any repo-relative `../../LICENSE` /
+// `../LICENSE` / `LICENSE` link target in the body re-points to the
+// unit's own GitHub blob URL. Exported pure (no fs/network) for tests.
+export function repointLicenseTargets(lines, { org, repo } = {}) {
+  const ghBase = org && repo ? `https://github.com/${org}/${repo.replace(new RegExp(`^${org}/`), '')}/blob/main/LICENSE` : null;
+  if (!ghBase) return lines;
+  return lines.map((ln) =>
+    ln
+      .replace(/\]\((?:\.\.\/)+(?:LICENSE)\)/g, `](${ghBase})`)
+      .replace(/\]\(LICENSE\)/g, `](${ghBase})`),
+  );
+}
+
+// Badge-block stripping (site rendering rule, WEB §4.2): source READMEs
+// open with shields.io badge lines whose LINK TARGETS are repo-relative
+// (`../../LICENSE`, `../LICENSE`) or repo-doc routes
+// (`/docs/services/{slug}`) - both resolve to broken links inside the
+// harvested site pages (the sites render their own footer/nav license
+// links, so the badges carry no information the site lacks). Layouts
+// shipped so far: badges directly after the H1, badges after H1 + blank
+// line, badges after a quote-lead paragraph, and badges after a short
+// intro prose paragraph (WEB-19: bill8-risk). The strip treats the
+// badge block as a contiguous RUN: a badge-image line plus the
+// continuation line of a hard-wrapped badge link (URL and target split
+// across lines), ending at the first non-badge content line. The window
+// search is PROSE-TOLERANT: blank lines, quote-lead prose, and a bounded
+// amount of H1-lead intro prose may separate the H1 from the first badge
+// line. Exported pure for node:test.
+export function stripBadgeLines(s, { org, repo } = {}) {
+  const lines = s.split('\n');
+  const startsBadge = (ln) => ln.trim().startsWith('[![');
+  const isQuote = (ln) => ln.trimStart().startsWith('> ');
+  const isProse = (ln) => {
+    // Prose = a wrapped fragment of the H1-lead intro paragraph: not a
+    // heading, not quote-lead, not empty. A bounded prose budget keeps
+    // the window anchored to the document lead (mid-document paragraphs
+    // after a heading never pull badges into the window).
+    return !ln.startsWith('# ') && !isQuote(ln) && ln.trim() !== '';
+  };
+  // Find the H1 (first line beginning '# ').
+  const h1 = lines.findIndex((ln) => ln.startsWith('# '));
+  if (h1 === -1) return repointLicenseTargets(lines, { org, repo }).join('\n');
+  // Search window: the first badge line after the H1 (skipping blanks,
+  // quote-lead prose, and a bounded H1-lead prose run).
+  let start = -1;
+  let proseBudget = 4; // lines of H1-lead intro prose tolerated
+  for (let i = h1 + 1; i < lines.length && i < h1 + 24; i += 1) {
+    if (startsBadge(lines[i])) { start = i; break; }
+    if (isProse(lines[i])) {
+      if (proseBudget <= 0) break;
+      proseBudget -= 1;
+      continue;
+    }
+  }
+  // The run: consecutive badge lines, where a badge line followed by a
+  // line starting with `)](` makes both part of one wrapped badge link -
+  // the continuation line belongs to the run too.
+  let out;
+  if (start === -1) {
+    out = lines;
+  } else {
+    let end = start;
+    while (end < lines.length) {
+      if (startsBadge(lines[end])) { end += 1; continue; }
+      if (end > start && lines[end].trimStart().startsWith(')](') ) { end += 1; continue; }
+      break;
+    }
+    out = lines.slice(0, start).concat(lines.slice(end));
+    // Repair the blank-line seam the strip can leave (badge block was the
+    // whole paragraph between two blanks).
+    while (out[start - 1] !== undefined && out[start] !== undefined && out[start - 1].trim() === '' && out[start].trim() === '') out.splice(start, 1);
+  }
+  return repointLicenseTargets(out, { org, repo }).join('\n');
+}
+
+// Main-module guard (same idiom as openapi-api-docs.mjs): the harvest
+// pipeline runs only when this file is the node entry point, so tests (and
+// any future importer) can import the pure helpers without side effects.
+const THIS_MODULE = fileURLToPath(import.meta.url);
+const ENTRY_POINT = process.argv[1] ? realpathSync(process.argv[1]) : '';
+if (ENTRY_POINT === THIS_MODULE) await main();
+
+async function main() {
 const arg = process.argv[2] || process.cwd();
 const siteDir = path.resolve(arg);
 const siteJsonPath = path.join(siteDir, 'site.json');
@@ -124,64 +208,6 @@ for (const unit of units) {
   // render time so the sites stay consistent without touching the sources.
   const normalizeTypography = (s) => s.replaceAll(' \u2014 ', ' - ').replaceAll('\u2014', '-');
 
-  // Badge-block stripping (site rendering rule): source READMEs open with
-  // shields.io badge lines whose LINK TARGETS are repo-relative
-  // (`../../LICENSE`, `../LICENSE`) or repo-doc routes
-  // (`/docs/services/{slug}`) - both resolve to broken links inside the
-  // harvested site pages (the sites render their own footer/nav license
-  // links, so the badges carry no information the site lacks). Layouts
-  // shipped so far: badges directly after the H1, badges after H1 + blank
-  // line, and badges after a quote-lead paragraph. The strip treats the
-  // badge block as a contiguous RUN: a badge-image line plus the
-  // continuation line of a hard-wrapped badge link (URL and target split
-  // across lines), ending at the first non-badge content line. The window
-  // search skips blank lines and quote-lead prose between the H1 and the
-  // first badge line. Residual repo-relative LICENSE link targets anywhere
-  // in the body are re-pointed to the repo's GitHub URL - defense-in-depth
-  // against future layouts.
-  const stripBadgeLines = (s, { org, repo } = {}) => {
-    const lines = s.split('\n');
-    const startsBadge = (ln) => ln.trim().startsWith('[![');
-    const isQuote = (ln) => ln.trimStart().startsWith('> ');
-    // Find the H1 (first line beginning '# ').
-    let h1 = lines.findIndex((ln) => ln.startsWith('# '));
-    if (h1 === -1) return s;
-    // Search window: the first badge line after the H1 (skipping blanks and
-    // quote-lead prose).
-    let start = -1;
-    for (let i = h1 + 1; i < lines.length && i < h1 + 24; i += 1) {
-      if (startsBadge(lines[i])) { start = i; break; }
-      // Stop the search at real content: a heading or non-quoted prose.
-      if (lines[i].startsWith('# ') || (lines[i].trim() !== '' && !isQuote(lines[i]))) break;
-    }
-    if (start === -1) return s;
-    // The run: consecutive badge lines, where a badge line followed by a
-    // line starting with `)](` makes both part of one wrapped badge link -
-    // the continuation line belongs to the run too.
-    let end = start;
-    while (end < lines.length) {
-      if (startsBadge(lines[end])) { end += 1; continue; }
-      if (end > start && lines[end].trimStart().startsWith(')](') ) { end += 1; continue; }
-      break;
-    }
-    let out = lines.slice(0, start).concat(lines.slice(end));
-    // Repair the blank-line seam the strip can leave (badge block was the
-    // whole paragraph between two blanks).
-    while (out[start - 1] !== undefined && out[start] !== undefined && out[start - 1].trim() === '' && out[start].trim() === '') out.splice(start, 1);
-    // Defense-in-depth: any repo-relative LICENSE link target that leaked
-    // past the badge strip re-points to the repo on GitHub (same content,
-    // no broken relative route).
-    const ghBase = org && repo ? `https://github.com/${org}/${repo.replace(new RegExp(`^${org}/`), '')}/blob/main/LICENSE` : null;
-    if (ghBase) {
-      out = out.map((ln) =>
-        ln
-          .replace(/\]\((?:\.\.\/)+(?:LICENSE)\)/g, `](${ghBase})`)
-          .replace(/\]\(LICENSE\)/g, `](${ghBase})`),
-      );
-    }
-    return out.join('\n');
-  };
-
   const writeFileWithFrontmatter = (dir, file, outName, label, content, { org: unitOrg, repo: unitRepo } = {}) => {
     // Repair origin for leaked license link targets: prefer the unit's own
     // org/repo, fall back to the harvest-level org/repo pair.
@@ -206,18 +232,18 @@ for (const unit of units) {
     // Resolve all sources up front so indexes list only what exists.
     const resolved = [];
     for (const [file, outName, label, embed] of sources) {
-    let content = await resolveFile(repo, file, org);
-    if (content === null) {
-      console.warn(`harvest: ${repo}: ${file} not found (skipped)`);
-      continue;
+      const content = await resolveFile(repo, file, org, siteDir);
+      if (content === null) {
+        console.warn(`harvest: ${repo}: ${file} not found (skipped)`);
+        continue;
+      }
+      resolved.push({ file, outName, label });
+      // Every source lands in the consolidated reference tree...
+      writeFileWithFrontmatter(refDir, file, outName, label, content, { org, repo });
+      // ...and the dossier sources also embed inside the product/app tree.
+      if (embed) writeFileWithFrontmatter(unitDir, file, outName, label, content, { org, repo });
+      harvested++;
     }
-    resolved.push({ file, outName, label });
-    // Every source lands in the consolidated reference tree...
-    writeFileWithFrontmatter(refDir, file, outName, label, content);
-    // ...and the dossier sources also embed inside the product/app tree.
-    if (embed) writeFileWithFrontmatter(unitDir, file, outName, label, content);
-    harvested++;
-  }
 
   // Reference landing: lists only what was actually harvested.
   writeFileSync(
@@ -282,10 +308,11 @@ try {
 } catch (err) {
   console.warn(`harvest: interactive API stage skipped (${err.message})`);
 }
+}
 
 /* ---------------------------------------------------------------- */
 
-async function resolveFile(repo, file, org) {
+async function resolveFile(repo, file, org, siteDir) {
   for (const base of SIBLING_DIRS) {
     const local = path.join(siteDir, base, repo, file);
     if (existsSync(local)) return readFileSync(local, 'utf8');
