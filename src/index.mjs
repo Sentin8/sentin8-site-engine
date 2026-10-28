@@ -17,6 +17,7 @@ const __engineDir = path.dirname(fileURLToPath(import.meta.url));
 const ALL_SITES = [
   { key: 'sentin8', name: 'Sentin8' },
   { key: 'bank8', name: 'Bank8' },
+  { key: 'openfin8', name: 'OpenFin8' },
   // Built and deployed like every site; familyHidden only removes it from
   // the SIBLING sites' navbar dropdown + footer (family-visibility rule,
   // design §4.6) - hotel8.dev self-lists normally (design WEB-16).

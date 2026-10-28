@@ -1,6 +1,6 @@
 {
   "name": "@sentin8/site-engine",
-  "version": "0.1.0",
+  "version": "0.9.22",
   "description": "Shared Docusaurus engine for the Sentin8 public websites (sentin8.dev + {vertical}.dev) - theme, MDX components, config/sidebar factories, docs harvester, site scaffolder.",
   "license": "Apache-2.0",
   "type": "module",
