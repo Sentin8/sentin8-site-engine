@@ -46,7 +46,7 @@ export function StartHere({ items }) {
 /**
  * Hero visual: the whole-system map - every unit, grouped by plane, rendered
  * as a compact panel. Unlike a cherry-picked code snippet, this shows the
- * ENTIRE platform/vertical at a glance (the WEB-12 lesson: a single-service
+ * ENTIRE platform/vertical at a glance (the lesson: a single-service
  * visual misrepresents the whole).
  */
 export function SystemMap({ name, planes, groups = [], services = [], apps = [] }) {

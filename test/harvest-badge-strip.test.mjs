@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // harvest-badge-strip.test.mjs - the header-badge-strip contract (WEB §4.2,
-// WEB-18/WEB-19). Source README badge rows link repo-relative (`../../LICENSE`)
+///). Source README badge rows link repo-relative (`../../LICENSE`)
 // or repo-doc routes; both break inside the harvested site pages with
 // `onBrokenLinks: throw`. The stripper must remove the header badge run for
 // every shipped layout - adjacent, blank-gap, quote-lead, and prose-lead -

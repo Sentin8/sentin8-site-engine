@@ -31,8 +31,8 @@ import process from 'node:process';
 const DEFAULT_BRANCH = 'main';
 const SIBLING_DIRS = ['../../', '../', './'];
 
-// Repair origin for leaked license link targets (WEB-18 defense-in-depth,
-// unconditional per WEB-19): any repo-relative `../../LICENSE` /
+// Repair origin for leaked license link targets (defense-in-depth,
+// unconditional per): any repo-relative `../../LICENSE` /
 // `../LICENSE` / `LICENSE` link target in the body re-points to the
 // unit's own GitHub blob URL. Exported pure (no fs/network) for tests.
 export function repointLicenseTargets(lines, { org, repo } = {}) {
@@ -53,7 +53,7 @@ export function repointLicenseTargets(lines, { org, repo } = {}) {
 // links, so the badges carry no information the site lacks). Layouts
 // shipped so far: badges directly after the H1, badges after H1 + blank
 // line, badges after a quote-lead paragraph, and badges after a short
-// intro prose paragraph (WEB-19: bill8-risk). The strip treats the
+// intro prose paragraph (bill8-risk). The strip treats the
 // badge block as a contiguous RUN: a badge-image line plus the
 // continuation line of a hard-wrapped badge link (URL and target split
 // across lines), ending at the first non-badge content line. The window

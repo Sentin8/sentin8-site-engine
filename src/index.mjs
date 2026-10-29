@@ -20,7 +20,7 @@ const ALL_SITES = [
   { key: 'openfin8', name: 'OpenFin8' },
   // Built and deployed like every site; familyHidden only removes it from
   // the SIBLING sites' navbar dropdown + footer (family-visibility rule,
-  // design §4.6) - hotel8.dev self-lists normally (design WEB-16).
+  // design §4.6) - hotel8.dev self-lists normally (design).
   { key: 'hotel8', name: 'Hotel8', familyHidden: true },
   { key: 'exchange8', name: 'Exchange8' },
   { key: 'trade8', name: 'Trade8' },
