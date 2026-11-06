@@ -114,3 +114,14 @@ test('platform site uses Services label and services/ routes', () => {
   assert.ok(labels.includes('Services'));
   assert.ok(!labels.includes('Products'));
 });
+
+test('footer Site column ends with the site legal links (LEGAL-2)', () => {
+  const cfg = makeSiteConfig(site);
+  const siteCol = cfg.themeConfig.footer.links.find((c) => c.title === 'Site');
+  const labels = siteCol.items.map((i) => i.label);
+  assert.deepEqual(labels.slice(-2), ['Privacy Policy', 'Terms of Service']);
+  assert.deepEqual(
+    siteCol.items.slice(-2).map((i) => i.to),
+    ['/privacy', '/terms'],
+  );
+});

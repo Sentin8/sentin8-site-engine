@@ -168,6 +168,12 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
               { label: 'Home', to: '/' },
               { label: 'Docs', to: '/docs' },
               { label: 'Security', to: '/docs/security' },
+              // Footer legal links (LEGAL-2): the "Site" column ends with
+              // the site's own legal pages - every site repo owns the page
+              // content (src/pages/privacy.md + terms.md), the engine owns
+              // the link surface (design websites §4.5).
+              { label: 'Privacy Policy', to: '/privacy' },
+              { label: 'Terms of Service', to: '/terms' },
             ],
           },
           {
