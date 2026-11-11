@@ -80,12 +80,14 @@ test('makeSiteConfig groups vertical accent and custom fields', () => {
   assert.equal(cfg.customFields.domain, 'bank8.dev');
 });
 
-test('footer copyright is the company line, never a per-project variant', () => {
+test('footer copyright is the community-attribution line, never a per-project variant', () => {
   const cfg = makeSiteConfig(site);
   const cp = cfg.themeConfig.footer.copyright;
-  assert.ok(cp.includes('Copyright &copy;'), 'copyright symbol present');
-  assert.ok(cp.includes('https://www.logicallymagic.com'), 'company link present');
-  assert.ok(cp.includes(String(new Date().getFullYear())), 'current year present');
+  assert.ok(cp.includes('Formerly PRIME'), 'PRIME lineage present');
+  assert.ok(cp.includes('Sparked by'), 'spark attribution present');
+  assert.ok(cp.includes('https://www.linkedin.com/in/hamidjahanzad/'), 'spark author link present');
+  assert.ok(cp.includes('https://www.logicallymagic.com'), 'fuel link present');
+  assert.ok(cp.includes('Released under the Apache 2.0 License'), 'license note present');
   assert.ok(cp.includes('<svg'), 'company wordmark svg present');
   assert.ok(!cp.includes('Docusaurus'), 'no per-project variant');
 });
