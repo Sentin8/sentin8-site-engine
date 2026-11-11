@@ -246,7 +246,15 @@ Released under the Apache 2.0 License.`,
             },
           },
           blog: false,
-          sitemap: {},
+          // @docusaurus/plugin-sitemap (ships with preset-classic - no extra
+          // install needed on the sites): emits /sitemap.xml at build. lastmod
+          // 'date' is enabled because the docs/blog plugins carry
+          // sourceFilePath/lastUpdatedAt route metadata; generated
+          // sitemap.xml is what crawlers pick up first.
+          sitemap: {
+            lastmod: 'date',
+            changefreq: 'weekly',
+          },
           // Webpack-resolved CSS: the engine theme (s8-* design system) + the
           // site's accent override. custom.css previously only @import'ed the
           // engine theme - css-loader does NOT resolve package-export
