@@ -314,6 +314,18 @@ writeFileSync(
   (site.domain || vertical + '.dev') + '\n',
 );
 
+/* robots.txt ------------------------------------------------------------ */
+// Crawler directives (SEO-1): allow all paths, declare the site sitemap so
+// crawlers discover it on first fetch, and exclude the build scratch dir.
+// A noindex site keeps robots out entirely (the JSON-LD + meta robots do
+// the rest - there is nothing to crawl).
+writeFileSync(
+  path.join(siteDir, 'static', 'robots.txt'),
+  site.noindex
+    ? 'User-agent: *\nDisallow: /\n'
+    : `User-agent: *\nAllow: /\nDisallow: /_\n\nSitemap: https://${site.domain || vertical + '.dev'}/sitemap.xml\n`,
+);
+
 /* site.json copy --------------------------------------------------------- */
 writeFileSync(path.join(siteDir, 'site.json'), JSON.stringify(site, null, 2) + '\n');
 

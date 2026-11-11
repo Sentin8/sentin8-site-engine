@@ -316,6 +316,63 @@ Released under the Apache 2.0 License.`,
           href: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap',
         },
       },
+      // Schema.org JSON-LD entity markup (SEO-1): search engines and AI
+      // models ground entity facts (name, description, license, language,
+      // category) on structured data rather than prose. SoftwareApplication
+      // carries the applicationCategory facet; the extra SoftwareSourceCode
+      // node carries the repo + runtime facets (programmingLanguage,
+      // codeRepository). site.json may override the category and the org
+      // GitHub URL (jsonld fields) - values default from the inventory.
+      ...(site.noindex
+        ? []
+        : [
+            {
+              tagName: 'script',
+              attributes: { type: 'application/ld+json' },
+              innerHTML: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@graph': [
+                  {
+                    '@type': 'SoftwareApplication',
+                    name: site.name || site.vertical,
+                    description: site.tagline ?? '',
+                    url: `https://${domain}/`,
+                    applicationCategory: site.jsonld?.category || 'FinanceApplication',
+                    ...(site.jsonld?.operatingSystem
+                      ? { operatingSystem: site.jsonld.operatingSystem }
+                      : {}),
+                    ...(site.noindex ? {} : { isAccessibleForFree: true }),
+                    image: `https://${domain}/img/og-card.png`,
+                    logo: `https://${domain}/img/${site.vertical}-logo.svg`,
+                    ...(site.org
+                      ? {
+                          publisher: {
+                            '@type': 'Organization',
+                            name: site.org,
+                            url: `https://github.com/${site.org}`,
+                          },
+                        }
+                      : {}),
+                    license: 'https://www.apache.org/licenses/LICENSE-2.0',
+                  },
+                  {
+                    '@type': 'SoftwareSourceCode',
+                    name: site.name || site.vertical,
+                    description: site.tagline ?? '',
+                    url: `https://${domain}/`,
+                    ...(site.org
+                      ? { codeRepository: `https://github.com/${site.org}` }
+                      : {}),
+                    programmingLanguage: site.jsonld?.language || 'Rust',
+                    ...(site.jsonld?.runtimePlatform
+                      ? { runtimePlatform: site.jsonld.runtimePlatform }
+                      : {}),
+                    license: 'https://www.apache.org/licenses/LICENSE-2.0',
+                  },
+                ],
+              }),
+            },
+          ]),
     ],
     ...(site.noindex ? { noIndex: true } : {}),
   };
