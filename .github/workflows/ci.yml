@@ -19,6 +19,6 @@ concurrency:
 
 jobs:
   ci:
-    uses: Sentin8/sentin8-ci/.github/workflows/docs-group.yml@ci-v1
+    uses: Sentin8/sentin8-ci/.github/workflows/docs-group.yml@ci-v2
     with:
       has-compose: false
