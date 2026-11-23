@@ -30,21 +30,20 @@ function meta(config, key) {
   );
 }
 
-test('og/twitter block present with absolute image URL', () => {
+test('the global og image block is emitted with an absolute URL', () => {
   const config = makeSiteConfig(site);
+  // The image tags are the part Docusaurus does NOT emit for us, so the
+  // engine owns them. og:title / og:description / og:url / twitter:card are
+  // per-page tags Docusaurus already renders from the page's own metadata
+  // (og:url follows the page's canonical URL); emitting them here as well
+  // produced two of each on every page, so the engine leaves them alone.
   for (const key of [
     'og:type',
     'og:site_name',
-    'og:title',
-    'og:description',
-    'og:url',
     'og:image',
     'og:image:width',
     'og:image:height',
     'og:image:alt',
-    'twitter:card',
-    'twitter:title',
-    'twitter:description',
     'twitter:image',
   ]) {
     assert.ok(meta(config, key), `missing meta tag: ${key}`);
@@ -59,21 +58,15 @@ test('og:image is an ABSOLUTE URL to the canonical PNG card', () => {
   assert.equal(tw.attributes.content, 'https://bank8.dev/img/og-card.png');
 });
 
-test('dimensions match the 1200x630 card + large-image card', () => {
+test('dimensions match the 1200x630 card', () => {
   const config = makeSiteConfig(site);
   assert.equal(meta(config, 'og:image:width').attributes.content, '1200');
   assert.equal(meta(config, 'og:image:height').attributes.content, '630');
-  assert.equal(
-    meta(config, 'twitter:card').attributes.content,
-    'summary_large_image',
-  );
 });
 
-test('title/description come from site.json (single source of truth)', () => {
+test('the engine no longer duplicates the per-page og tags', () => {
   const config = makeSiteConfig(site);
-  assert.equal(meta(config, 'og:title').attributes.content, 'Bank8');
-  assert.equal(
-    meta(config, 'og:description').attributes.content,
-    'Banking, payments, and open banking on Sentin8',
-  );
+  for (const key of ['og:title', 'og:description', 'og:url', 'twitter:card']) {
+    assert.equal(meta(config, key), undefined, `${key} must not be duplicated`);
+  }
 });

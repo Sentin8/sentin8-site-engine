@@ -297,9 +297,6 @@ Released under the Apache 2.0 License.`,
       // ABSOLUTE (scrapers do not resolve relative image URLs).
       { tagName: 'meta', attributes: { property: 'og:type', content: 'website' } },
       { tagName: 'meta', attributes: { property: 'og:site_name', content: site.name || site.vertical } },
-      { tagName: 'meta', attributes: { property: 'og:title', content: socialTitle } },
-      { tagName: 'meta', attributes: { property: 'og:description', content: socialDescription } },
-      { tagName: 'meta', attributes: { property: 'og:url', content: `https://${domain}/` } },
       {
         tagName: 'meta',
         attributes: {
@@ -310,9 +307,6 @@ Released under the Apache 2.0 License.`,
       { tagName: 'meta', attributes: { property: 'og:image:width', content: '1200' } },
       { tagName: 'meta', attributes: { property: 'og:image:height', content: '630' } },
       { tagName: 'meta', attributes: { property: 'og:image:alt', content: `${site.name || site.vertical} logo` } },
-      { tagName: 'meta', attributes: { name: 'twitter:card', content: 'summary_large_image' } },
-      { tagName: 'meta', attributes: { name: 'twitter:title', content: socialTitle } },
-      { tagName: 'meta', attributes: { name: 'twitter:description', content: socialDescription } },
       { tagName: 'meta', attributes: { name: 'twitter:image', content: `https://${domain}/img/og-card.png` } },
       // Quicksand - the default font family for all sites (owner decision
       // 2026-10-16). Weights 300-700; the theme maps everything to <=700.
