@@ -87,6 +87,12 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
   const accent = site.accent || VERTICAL_ACCENTS[site.vertical] || '#D4AF37';
   const domain = site.domain || `${site.vertical}.dev`;
 
+  // Social-share title: the positioning statement, not the bare brand name -
+  // a link preview reading only "Bank8" wastes the one line a scraper shows.
+  // Falls back to the site name for an inventory without hero copy.
+  const socialTitle = site.heroTitle || site.name || site.vertical;
+  const socialDescription = site.heroDescription || site.tagline || '';
+
   // Family-visibility rule (design §4.6): a familyHidden roster entry is
   // listed only on its own site - the navbar domain dropdown and the footer
   // "All sites" column render the filtered roster, not the full one.
@@ -291,8 +297,8 @@ Released under the Apache 2.0 License.`,
       // ABSOLUTE (scrapers do not resolve relative image URLs).
       { tagName: 'meta', attributes: { property: 'og:type', content: 'website' } },
       { tagName: 'meta', attributes: { property: 'og:site_name', content: site.name || site.vertical } },
-      { tagName: 'meta', attributes: { property: 'og:title', content: site.name || site.vertical } },
-      { tagName: 'meta', attributes: { property: 'og:description', content: site.tagline ?? '' } },
+      { tagName: 'meta', attributes: { property: 'og:title', content: socialTitle } },
+      { tagName: 'meta', attributes: { property: 'og:description', content: socialDescription } },
       { tagName: 'meta', attributes: { property: 'og:url', content: `https://${domain}/` } },
       {
         tagName: 'meta',
@@ -305,8 +311,8 @@ Released under the Apache 2.0 License.`,
       { tagName: 'meta', attributes: { property: 'og:image:height', content: '630' } },
       { tagName: 'meta', attributes: { property: 'og:image:alt', content: `${site.name || site.vertical} logo` } },
       { tagName: 'meta', attributes: { name: 'twitter:card', content: 'summary_large_image' } },
-      { tagName: 'meta', attributes: { name: 'twitter:title', content: site.name || site.vertical } },
-      { tagName: 'meta', attributes: { name: 'twitter:description', content: site.tagline ?? '' } },
+      { tagName: 'meta', attributes: { name: 'twitter:title', content: socialTitle } },
+      { tagName: 'meta', attributes: { name: 'twitter:description', content: socialDescription } },
       { tagName: 'meta', attributes: { name: 'twitter:image', content: `https://${domain}/img/og-card.png` } },
       // Quicksand - the default font family for all sites (owner decision
       // 2026-10-16). Weights 300-700; the theme maps everything to <=700.
@@ -338,7 +344,7 @@ Released under the Apache 2.0 License.`,
                   {
                     '@type': 'SoftwareApplication',
                     name: site.name || site.vertical,
-                    description: site.tagline ?? '',
+                    description: socialDescription,
                     url: `https://${domain}/`,
                     applicationCategory: site.jsonld?.category || 'FinanceApplication',
                     ...(site.jsonld?.operatingSystem
@@ -361,7 +367,7 @@ Released under the Apache 2.0 License.`,
                   {
                     '@type': 'SoftwareSourceCode',
                     name: site.name || site.vertical,
-                    description: site.tagline ?? '',
+                    description: socialDescription,
                     url: `https://${domain}/`,
                     ...(site.org
                       ? { codeRepository: `https://github.com/${site.org}` }
