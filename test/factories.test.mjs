@@ -84,7 +84,7 @@ test('footer copyright is the community-attribution line, never a per-project va
   const cfg = makeSiteConfig(site);
   const cp = cfg.themeConfig.footer.copyright;
   assert.ok(cp.includes('Formerly PRIME'), 'PRIME lineage present');
-  assert.ok(cp.includes('Sparked by'), 'spark attribution present');
+  assert.ok(cp.includes('Designed by'), 'spark attribution present');
   assert.ok(cp.includes('https://www.linkedin.com/in/hamidjahanzad/'), 'spark author link present');
   assert.ok(cp.includes('https://www.logicallymagic.com'), 'fuel link present');
   assert.ok(cp.includes('Released under the Apache 2.0 License'), 'license note present');

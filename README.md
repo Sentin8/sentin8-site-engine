@@ -69,9 +69,11 @@ everything mechanical comes from this package.
 ## 4. Key Traits and Data Structures
 
 - **`site.json` contract** - the per-site inventory: `vertical`, `name`,
-  `org`, `domain`, `tagline`, `accent`, `pillars`, `units[]`,
-  `apps[]`, `sdks[]`, `showcase[]`, `crossrefs[]`. Units carry `slug`,
-  `kind` (`service`|`starter`|`app`|`sdk`), `name`, `repo`, `org`,
+  `org`, `domain`, `tagline` (short line, used for the page meta
+  description), `heroEyebrow`/`heroTitle`/`heroDescription` (landing hero
+  eyebrow, positioning `h1`, and long business body), `accent`, `pillars`,
+  `units[]`, `apps[]`, `sdks[]`, `showcase[]`, `crossrefs[]`. Units carry
+  `slug`, `kind` (`service`|`starter`|`app`|`sdk`), `name`, `repo`, `org`,
   `summary`, `scopes` (the OAuth scope vocabulary shown on cards).
 - **`makeSiteConfig(site)`** - emits the entire Docusaurus config:
   Mermaid theme, dark-first color mode, navbar (Products/Services +
@@ -90,6 +92,10 @@ everything mechanical comes from this package.
   `createElement` (internal `h()`), because Docusaurus excludes
   `node_modules` from its Babel/MDX pipeline: engine components must
   not require transpilation. Site-local pages use MDX freely.
+  `Hero` takes `{ eyebrow, title, tagline, actions, accent, visual }`:
+  the eyebrow renders as a short uppercase category label above the
+  `h1`, and the `tagline` slot carries the long business description
+  (`site.heroDescription`), not the short meta `tagline`.
 - **`harvest.mjs`** - for every service/starter/app/sdk unit: resolve
   `README.md`/`DESIGN.md`/`BUSINESS.md`/`SECURITY.md`/`CHANGELOG.md`
   from the local sibling folder first (offline dev), then

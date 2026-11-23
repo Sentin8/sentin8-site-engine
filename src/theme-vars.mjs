@@ -23,5 +23,6 @@ export const VERTICAL_ACCENTS = {
   trade8: '#B85450',
   bill8: '#7B4FBF',
   email8: '#3E8FB0',
+  wallet8: '#F8B64C',
   health8: '#5FA85F',
 };

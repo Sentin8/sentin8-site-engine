@@ -114,13 +114,29 @@ html[data-theme='light'] {
   align-items: flex-start;
   gap: 1rem;
 }
+/* Hero title: the h1 is a full positioning statement ("Bank8: Autonomous
+   Quantum-Safe Core Banking"), not a two-word brand, so it is set smaller
+   than a display headline - roughly the size of a section title - and wraps
+   to at most two lines beside the system map. */
 .s8-hero-title {
-  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+  font-size: clamp(1.85rem, 3.4vw, 2.5rem);
   font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
   margin: 0;
   text-align: left;
+}
+/* Eyebrow: short uppercase category label above the hero title (design
+   §4.4/§4.5). It states WHAT the site is ("OPEN-SOURCE CORE BANKING") while
+   the title states the positioning statement. The negative bottom margin
+   pulls it tight against the title despite the copy column's flex gap. */
+.s8-hero-eyebrow {
+  margin: 0 0 -0.6rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--site-accent);
 }
 .s8-hero-tagline {
   font-size: 1.18rem;

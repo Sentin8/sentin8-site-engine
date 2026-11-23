@@ -83,8 +83,17 @@ export function SystemMap({ name, planes, groups = [], services = [], apps = [] 
   );
 }
 
-/** Hero banner for landing pages: title, tagline, optional CTA links. */
-export function Hero({ title, tagline, actions = [], accent, visual }) {
+/**
+ * Hero banner for landing pages: optional eyebrow, title, description, CTA
+ * links (design §4.4/§4.5).
+ *
+ * The eyebrow is a short uppercase category label ("OPEN-SOURCE CORE
+ * BANKING") rendered above the title; the title carries the positioning
+ * statement ("Bank8: Autonomous Quantum-Safe Core Banking"), and the tagline
+ * slot carries the long business description. The short one-line
+ * `site.tagline` stays reserved for the page meta description.
+ */
+export function Hero({ eyebrow, title, tagline, actions = [], accent, visual }) {
   const actionEls = actions.length
     ? h(
         'div',
@@ -115,6 +124,7 @@ export function Hero({ title, tagline, actions = [], accent, visual }) {
       h(
         'div',
         { className: 's8-hero-copy' },
+        eyebrow ? h('p', { className: 's8-hero-eyebrow' }, eyebrow) : null,
         h('h1', { className: 's8-hero-title' }, title),
         tagline ? h('p', { className: 's8-hero-tagline' }, tagline) : null,
         actionEls,
