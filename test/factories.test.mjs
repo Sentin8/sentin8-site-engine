@@ -127,3 +127,24 @@ test('footer Site column ends with the site legal links (LEGAL-2)', () => {
     ['/privacy', '/terms'],
   );
 });
+
+test('footer carries the OpenID Certified lockup linking to the certification record (OIDF-CERT)', () => {
+  const cfg = makeSiteConfig(site);
+  const cp = cfg.themeConfig.footer.copyright;
+  assert.ok(cp.includes('s8-footer-cert'), 'cert lockup class present');
+  assert.ok(
+    cp.includes('href="https://sentin8.dev/certification"'),
+    'lockup links the sentin8.dev certification page',
+  );
+  assert.ok(cp.includes('img/openid-certified.png'), 'official mark image referenced');
+  assert.ok(cp.includes('alt="OpenID Certified"'), 'mark has accessible alt text');
+  assert.ok(cp.includes('OpenID Certified'), 'the statement text is present');
+});
+
+test('engine ships the OpenID Certified mark through staticDirectories (OIDF-CERT)', () => {
+  const cfg = makeSiteConfig(site);
+  assert.deepEqual(cfg.staticDirectories, [
+    'static',
+    'node_modules/@sentin8/site-engine/static',
+  ]);
+});

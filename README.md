@@ -148,6 +148,14 @@ everything mechanical comes from this package.
 - Engine components accept `items` arrays, never import site.json
   themselves - landing pages do the mapping, keeping the components
   reusable across all seven sites.
+- **The footer certification lockup is engine-owned (OIDF-CERT).** The
+  OpenID Certified mark lives in this package (`static/img/openid-certified.png`,
+  the official OIDF RGB asset, never recolored or inverted), is exposed to
+  every site through `staticDirectories`, and is rendered by `makeSiteConfig`
+  in `themeConfig.footer.copyright` as one link to
+  `https://sentin8.dev/certification`. Sites cannot drift: the claim, the
+  mark and the link are one factory edit. `test/factories.test.mjs` locks
+  both the lockup and the `staticDirectories` entry.
 
 ## 7. Development
 

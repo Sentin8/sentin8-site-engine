@@ -140,6 +140,11 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
     baseUrl: '/',
     onBrokenLinks: 'throw',
     favicon: `img/${site.vertical}-logo.svg`,
+    // Engine-shipped static assets (OIDF-CERT): the OpenID Certified mark
+    // lives in the engine package, not in each site repo, so every vertical
+    // gets the footer badge from one pinned source. Docusaurus resolves
+    // staticDirectories against the site root, hence the node_modules path.
+    staticDirectories: ['static', 'node_modules/@sentin8/site-engine/static'],
     customFields: {
       site,
       accent,
@@ -190,7 +195,11 @@ export function makeSiteConfig(site, { devPort = 3000 } = {}) {
             items: familySites.map((s) => ({ label: s.name, href: `https://${s.key}.dev/` })),
           },
         ],
-        copyright: `<span style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem;" class="s8-footer-note">Formerly PRIME - trusted by exchanges and banks worldwide - now Sentin8, migrated from SVN to GitHub.</span>
+        copyright: `<a class="s8-footer-cert" href="https://sentin8.dev/certification" title="Sentin8 is OpenID Certified - see the certification record">
+          <img class="s8-footer-cert-mark" src="/img/openid-certified.png" alt="OpenID Certified" width="530" height="277" loading="lazy" />
+          <span class="s8-footer-cert-text">Sentin8 is <strong>OpenID Certified</strong> - covering OpenID Connect, FAPI 1.0/2.0, CIBA, OpenID4VP and OpenID4VCI (HAIP). See the certification record.</span>
+        </a>
+        <span style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem;" class="s8-footer-note">Formerly PRIME - trusted by exchanges and banks worldwide - now Sentin8, migrated from SVN to GitHub.</span>
         <svg width="100" version="1.1" viewBox="0 0 50.516 19.401" xmlns="http://www.w3.org/2000/svg">
  <g transform="translate(-56.622 -120.3)">
   <path d="m61.512 120.3q-0.94192 1.4288-1.6404 2.4765-0.6985 1.0372-1.1959 1.778-0.49742 0.74083-0.81492 1.2277-0.3175 0.47625-0.49742 0.78317-0.17992 0.30692-0.254 0.48683-0.0635 0.17992-0.0635 0.30692 0 0.26458 0.23283 0.26458 0.26458 0 0.61383-0.21166 0.35983-0.22225 0.762-0.59267 0.41275-0.381 0.83608-0.87842 0.42333-0.508 0.8255-1.0795l0.11642 0.0423q-0.381 0.53975-0.80433 1.0478-0.42333 0.49741-0.81492 0.86783-0.51858 0.48683-0.89958 0.70908-0.37042 0.22225-0.67733 0.22225-0.32808 0-0.47625-0.14816-0.13758-0.14817-0.13758-0.39159 0-0.22225 0.07408-0.45508 0.08467-0.24342 0.27517-0.5715 0.1905-0.33867 0.49742-0.81492 0.3175-0.47625 0.77258-1.1642 0.46567-0.6985 1.0901-1.651 0.62442-0.96309 1.4393-2.2542z"/>

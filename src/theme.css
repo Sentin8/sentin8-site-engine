@@ -577,3 +577,89 @@ html[data-theme='light'] .s8-map-item {
     gap: 1.25rem;
   }
 }
+
+/* OpenID Certified lockup (OIDF-CERT) -------------------------------- */
+/* The footer carries the official OpenID Certified mark on every site:
+ * mark + one-line statement, the whole lockup a single link to the
+ * certification record on sentin8.dev. The mark renders on the dark footer,
+ * so the wrapper keeps a light plate behind it - the official RGB mark is
+ * drawn for light backgrounds (black wordmark) and must not be recolored. */
+.s8-footer-cert {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 52rem;
+  margin: 0 auto 0.9rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--s8-radius);
+  border: 1px solid var(--s8-glass-border);
+  background: rgba(255, 255, 255, 0.94);
+  color: #1b1b1f;
+  text-decoration: none;
+  text-align: left;
+  line-height: 1.4;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.s8-footer-cert:hover,
+.s8-footer-cert:focus-visible {
+  border-color: #f7931e;
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: #1b1b1f;
+}
+
+.s8-footer-cert-mark {
+  flex: 0 0 auto;
+  width: 132px;
+  height: auto;
+  display: block;
+}
+
+.s8-footer-cert-text {
+  font-size: 0.86rem;
+  color: #3c3c43;
+}
+
+.s8-footer-cert-text strong {
+  color: #1b1b1f;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .s8-footer-cert {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .s8-footer-cert-mark {
+    width: 88px;
+  }
+}
+
+/* Certification page (/certification) --------------------------------- */
+/* The mark floats beside the intro copy: the certified claim and its
+ * evidence links in one place. The official RGB mark draws a black wordmark
+ * for light backgrounds, so it keeps a light plate on the dark page - never
+ * recolor or invert the official asset. */
+.s8-cert-mark {
+  float: right;
+  width: 240px;
+  height: auto;
+  margin: 0 0 1rem 1.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--s8-radius);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--s8-glass-border);
+}
+
+@media (max-width: 600px) {
+  .s8-cert-mark {
+    float: none;
+    display: block;
+    width: 180px;
+    margin: 0 0 1rem;
+  }
+}
