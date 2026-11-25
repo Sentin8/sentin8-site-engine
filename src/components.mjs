@@ -48,8 +48,13 @@ export function StartHere({ items }) {
  * as a compact panel. Unlike a cherry-picked code snippet, this shows the
  * ENTIRE platform/vertical at a glance (the lesson: a single-service
  * visual misrepresents the whole).
+ *
+ * `certified` appends one final column carrying a certification mark
+ * ({ label, mark, href, alt }) - the platform's OpenID Certified status
+ * belongs in the whole-system picture, not only in the footer (OIDF-CERT).
+ * Omit it and the map renders exactly as before.
  */
-export function SystemMap({ name, planes, groups = [], services = [], apps = [] }) {
+export function SystemMap({ name, planes, groups = [], services = [], apps = [], certified }) {
   // Default grouping: one flat "services" group + apps, when no planes given.
   const columns = planes?.length
     ? planes.map((p) => ({ title: p.title, items: (p.items || []).map((s) => s.name || s) }))
@@ -79,6 +84,26 @@ export function SystemMap({ name, planes, groups = [], services = [], apps = [] 
           ...col.items.map((n, i) => h('span', { key: i, className: 's8-map-item' }, n)),
         ),
       ),
+      // Certification column: always last, after every plane (OIDF-CERT).
+      certified
+        ? h(
+            'div',
+            { className: 's8-map-col s8-map-cert' },
+            h('span', { className: 's8-map-col-title' }, certified.label || 'Certified'),
+            h(
+              'a',
+              { className: 's8-map-cert-link', href: certified.href || 'https://sentin8.dev/certification' },
+              certified.mark
+                ? h('img', {
+                    className: 's8-map-cert-mark',
+                    src: certified.mark,
+                    alt: certified.alt || 'OpenID Certified',
+                    loading: 'lazy',
+                  })
+                : null,
+            ),
+          )
+        : null,
     ),
   );
 }

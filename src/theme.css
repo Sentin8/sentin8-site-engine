@@ -228,6 +228,35 @@ html[data-theme='light'] .s8-map-item {
   color: #2a2a2e;
 }
 
+/* Certification column (OIDF-CERT): the last column of the hero map, so the
+ * whole-system picture carries the certified status too. The official RGB
+ * mark is drawn for light backgrounds, so it keeps a light plate here - the
+ * same rule as the footer lockup (never recolor or invert the asset). */
+.s8-map-cert {
+  align-items: flex-start;
+}
+
+.s8-map-cert-link {
+  display: inline-flex;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--s8-glass-border);
+  transition: border-color 0.15s ease;
+}
+
+.s8-map-cert-link:hover,
+.s8-map-cert-link:focus-visible {
+  border-color: #f7931e;
+}
+
+.s8-map-cert-mark {
+  display: block;
+  width: 100%;
+  max-width: 118px;
+  height: auto;
+}
+
 /* Responsive: single column on narrow screens */
 @media (max-width: 960px) {
   .s8-hero-inner {
