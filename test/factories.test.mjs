@@ -68,8 +68,10 @@ test('makeSiteConfig produces a valid Docusaurus config shape', () => {
   assert.ok(labels.includes('Apps'));
   assert.ok(labels.includes('Security'));
   assert.ok(labels.includes('GitHub'));
-  // footer carries all 8 family links
-  const footerSites = cfg.themeConfig.footer.links[1].items.map((i) => i.label);
+  // footer carries all 8 family links (the "All sites" column - the cert
+  // lockup is a separate, title-less first column)
+  const allSitesCol = cfg.themeConfig.footer.links.find((c) => c.title === 'All sites');
+  const footerSites = allSitesCol.items.map((i) => i.label);
   assert.ok(footerSites.includes('Sentin8'));
   assert.ok(footerSites.includes('Email8'));
 });
@@ -130,7 +132,14 @@ test('footer Site column ends with the site legal links (LEGAL-2)', () => {
 
 test('footer carries the OpenID Certified lockup linking to the certification record (OIDF-CERT)', () => {
   const cfg = makeSiteConfig(site);
-  const cp = cfg.themeConfig.footer.copyright;
+  // The lockup is the FIRST footer column, ahead of "Site" (owner request
+  // 2026-11-25) - not part of the copyright block.
+  const first = cfg.themeConfig.footer.links[0];
+  assert.equal(first.className, 's8-footer-cert-col', 'first column is the cert column');
+  assert.equal(first.title, null, 'cert column carries no title');
+
+  const cp = first.items[0].html;
+  assert.ok(cp, 'cert column renders an html item');
   assert.ok(cp.includes('s8-footer-cert'), 'cert lockup class present');
   assert.ok(
     cp.includes('href="https://sentin8.dev/certification"'),
@@ -138,7 +147,15 @@ test('footer carries the OpenID Certified lockup linking to the certification re
   );
   assert.ok(cp.includes('img/openid-certified.png'), 'official mark image referenced');
   assert.ok(cp.includes('alt="OpenID Certified"'), 'mark has accessible alt text');
-  assert.ok(cp.includes('OpenID Certified'), 'the statement text is present');
+  assert.ok(cp.includes('Sentin8 is'), 'the statement text is present');
+
+  // "Site" must still be the second column, and the lockup must not leak
+  // back into the copyright block.
+  assert.equal(cfg.themeConfig.footer.links[1].title, 'Site');
+  assert.ok(
+    !cfg.themeConfig.footer.copyright.includes('s8-footer-cert'),
+    'lockup is not duplicated in copyright',
+  );
 });
 
 test('engine ships the OpenID Certified mark through staticDirectories (OIDF-CERT)', () => {
