@@ -238,6 +238,7 @@ html[data-theme='light'] .s8-map-item {
 
 .s8-map-cert-link {
   display: inline-flex;
+  margin-top: 4px;
   padding: 4px 6px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.94);

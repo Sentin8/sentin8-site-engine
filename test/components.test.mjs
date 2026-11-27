@@ -65,3 +65,21 @@ test('SystemMap cert column defaults its label and link', () => {
   );
   assert.ok(html.includes('alt="OpenID Certified"'), 'alt defaults to OpenID Certified');
 });
+
+test('certified.items render above the mark, so a vertical can name the platform', () => {
+  const html = render({
+    certified: {
+      label: 'Platform',
+      items: ['Sentin8'],
+      mark: '/img/openid-certified.png',
+    },
+  });
+
+  const titles = colTitles(html);
+  assert.deepEqual(titles, ['Identity & access', 'Data & events', 'Platform']);
+
+  // The platform name precedes the mark inside the cert column.
+  const certCol = html.slice(html.indexOf('s8-map-cert'));
+  assert.ok(certCol.indexOf('Sentin8</span>') < certCol.indexOf('s8-map-cert-mark'),
+    'items render before the mark');
+});
